@@ -172,7 +172,8 @@ void ClientModel::createClientList(int desktop, bool partialReset)
 {
     TabBoxClient* start = tabBox->activeClient();
     // TODO: new clients are not added at correct position
-    if (partialReset && !m_clientList.isEmpty())
+    //FIXME: check of partialReset doesn't work here
+    if (!m_clientList.isEmpty())
         start = m_clientList.first();
 
     m_clientList.clear();
