@@ -78,7 +78,11 @@ private:
     Q_PRIVATE_SLOT(d, void itemChanged(::TaskManager::TaskChanges))
 };
 
+
 } // namespace TaskManager
+
+
+Q_DECLARE_METATYPE(TaskManager::TasksModel*)
 
 #endif
 

@@ -23,6 +23,7 @@
 #include <Plasma/Corona>
 
 #include <QGraphicsView>
+#include <QDeclarativeContext>
 #include <QDeclarativeEngine>
 #include <QDeclarativeView>
 #include <QDeclarativeComponent>
@@ -35,11 +36,12 @@
 #include <Plasma/Package>
 
 #include <taskmanager/tasksmodel.h>
-//    libs/taskmanager/tasksmodel.h
+
 K_EXPORT_PLASMA_APPLET(tasks, Tasks)
 
 Tasks::Tasks(QObject *parent, const QVariantList &args)
     : Plasma::Applet(parent, args)
+    , m_tasksModel(0)
 {
     resize(192, 128);
 
@@ -50,9 +52,13 @@ Tasks::Tasks(QObject *parent, const QVariantList &args)
     m_declarativeWidget = new Plasma::DeclarativeWidget(this);
     lay->addItem(m_declarativeWidget);
 
+    qRegisterMetaType<TaskManager::TasksModel*>();
+    QVariant v = QVariant::fromValue(m_tasksModel);
+
     Plasma::PackageStructure::Ptr structure = Plasma::PackageStructure::load("Plasma/Generic");
     m_package = new Plasma::Package(QString(), "org.kde.tasks", structure);
     m_declarativeWidget->setQmlPath(m_package->filePath("mainscript"));
+  //  m_declarativeWidget->engine()->rootContext()->setContextProperty("tasksModel", QVariant::fromValue(m_tasksModel));
 }
 
 Tasks::~Tasks()

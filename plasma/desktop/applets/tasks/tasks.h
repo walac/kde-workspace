@@ -27,6 +27,10 @@ namespace Plasma {
     class DeclarativeWidget;
 }
 
+namespace TaskManager {
+    class TasksModel;
+}
+
 class Tasks : public Plasma::Applet
 {
 Q_OBJECT
@@ -37,6 +41,8 @@ public:
 private:
     Plasma::Package *m_package;
     Plasma::DeclarativeWidget *m_declarativeWidget;
+
+    TaskManager::TasksModel *m_tasksModel;
 };
 
 #endif
