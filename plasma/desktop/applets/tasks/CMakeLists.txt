@@ -1,7 +1,6 @@
 project(tasks)
 
 set(tasks_SRCS tasks.cpp)
-message(FATAL_ERROR ${KDEBASE_WORKSPACE_SOURCEDIR})
 
 kde4_add_plugin(plasma_applet_org_kde_tasks ${tasks_SRCS})
 
