@@ -53,7 +53,7 @@ Item {
 
         anchors.fill: parent
 
-        model: tasksModel
+//        model: tasksModel
         delegate: tasksDelegate
 
         cellWidth: 300; cellHeight: 30
@@ -66,16 +66,16 @@ Item {
         MouseArea {
             property string currentId: "-1"                       // Original position in model
             property int newIndex                            // Current Position in model
-            property int index: tasksGrid.indexAt(mouseX, mouseY) // Item underneath cursor
+            property int index: 1 //HACK: tasksGrid.indexAt(mouseX, mouseY) // Item underneath cursor
             id: loc
             anchors.fill: parent
-            onPressAndHold: currentId =tasksModel.get(1).name //tasksModel.get(newIndex = index).gridId.
+           // onPressAndHold: currentId =tasksModel.get(1).name //tasksModel.get(newIndex = index).gridId.
             onReleased: currentId = -1
             onMousePositionChanged:
             if (loc.currentId != "-1" && index != -1 && index != newIndex) {
                 
                 console.log("DEBUG" + "newindex: " + newIndex + " INDEX: " + index)
-                tasksModel.move(0 , 1, 1)//newIndex, newIndex = index, 1)
+            //    tasksModel.move(0 , 1, 1)//newIndex, newIndex = index, 1)
             }
         }
     }
