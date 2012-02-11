@@ -38,6 +38,8 @@ public:
     Tasks(QObject *parent, const QVariantList &args);
     ~Tasks();
 
+    void init();
+
 private:
     Plasma::Package *m_package;
     Plasma::DeclarativeWidget *m_declarativeWidget;

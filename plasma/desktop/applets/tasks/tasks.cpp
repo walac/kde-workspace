@@ -36,6 +36,7 @@
 #include <Plasma/Package>
 
 #include <taskmanager/tasksmodel.h>
+#include <taskmanager/groupmanager.h>
 
 K_EXPORT_PLASMA_APPLET(tasks, Tasks)
 
@@ -48,17 +49,22 @@ Tasks::Tasks(QObject *parent, const QVariantList &args)
     setAspectRatioMode(Plasma::IgnoreAspectRatio);
     setHasConfigurationInterface(false);
 
+}
+
+void Tasks::init()
+{
     QGraphicsLinearLayout *lay = new QGraphicsLinearLayout(this);
     m_declarativeWidget = new Plasma::DeclarativeWidget(this);
     lay->addItem(m_declarativeWidget);
 
     qRegisterMetaType<TaskManager::TasksModel*>();
-    QVariant v = QVariant::fromValue(m_tasksModel);
+
+    m_tasksModel = new TaskManager::TasksModel();
 
     Plasma::PackageStructure::Ptr structure = Plasma::PackageStructure::load("Plasma/Generic");
     m_package = new Plasma::Package(QString(), "org.kde.tasks", structure);
     m_declarativeWidget->setQmlPath(m_package->filePath("mainscript"));
-  //  m_declarativeWidget->engine()->rootContext()->setContextProperty("tasksModel", QVariant::fromValue(m_tasksModel));
+    m_declarativeWidget->engine()->rootContext()->setContextProperty("tasksModel", QVariant::fromValue(m_tasksModel));
 }
 
 Tasks::~Tasks()
