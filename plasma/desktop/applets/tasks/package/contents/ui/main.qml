@@ -29,20 +29,20 @@ Item {
     property int minimumWidth: 300
     property int minimumHeight: 300
 
-    PlasmaCore.DataSource {
-        id: tasksSource
-        engine: "tasks"
-        onSourceAdded: connectSource(source)
-        onSourceRemoved: disconnectSource(source)
-
-        Component.onCompleted: connectedSources = sources
-    }
-
-    PlasmaCore.DataModel {
-        id: tasksModel
-        dataSource: tasksSource
-    }
-
+//    PlasmaCore.DataSource {
+//        id: tasksSource
+//        engine: "tasks"
+//        onSourceAdded: connectSource(source)
+//        onSourceRemoved: disconnectSource(source)
+//
+//        Component.onCompleted: connectedSources = sources
+//    }
+//
+//    PlasmaCore.DataModel {
+//        id: tasksModel
+//        dataSource: tasksSource
+//    }
+//
     Component.onCompleted: {
 //        plasmoid.popupIcon = "utilities-terminal";
  //       plasmoid.aspectRatioMode = IgnoreAspectRatio;

@@ -49,7 +49,6 @@ Tasks::Tasks(QObject *parent, const QVariantList &args)
 
     setAspectRatioMode(Plasma::IgnoreAspectRatio);
     setHasConfigurationInterface(false);
-
 }
 
 Tasks::~Tasks()
@@ -59,12 +58,6 @@ Tasks::~Tasks()
 
 void Tasks::init()
 {
-    QGraphicsLinearLayout *lay = new QGraphicsLinearLayout(this);
-    m_declarativeWidget = new Plasma::DeclarativeWidget(this);
-    lay->addItem(m_declarativeWidget);
-
-
-
 
     m_groupManager = new TaskManager::GroupManager(this);
 
@@ -74,20 +67,19 @@ void Tasks::init()
         m_groupManager->setScreen(c->screen());
     }
 
-
-
-
-
+    QGraphicsLinearLayout *lay = new QGraphicsLinearLayout(this);
+    m_declarativeWidget = new Plasma::DeclarativeWidget(this);
+    lay->addItem(m_declarativeWidget);
 
     qRegisterMetaType<TaskManager::TasksModel*>();
 
     m_tasksModel = new TaskManager::TasksModel(m_groupManager, this);
+    Q_ASSERT(m_tasksModel);
 
     Plasma::PackageStructure::Ptr structure = Plasma::PackageStructure::load("Plasma/Generic");
     m_package = new Plasma::Package(QString(), "org.kde.tasks", structure);
     m_declarativeWidget->setQmlPath(m_package->filePath("mainscript"));
     m_declarativeWidget->engine()->rootContext()->setContextProperty("tasksModel", QVariant::fromValue(m_tasksModel));
-
 
 }
 
