@@ -43,6 +43,9 @@ public:
 
     void configChanged();
 
+private Q_SLOTS:
+    void checkModel();
+
 private:
     Plasma::Package *m_package;
     Plasma::DeclarativeWidget *m_declarativeWidget;

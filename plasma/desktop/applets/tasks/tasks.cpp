@@ -82,14 +82,19 @@ void Tasks::init()
     m_groupManager->setShowOnlyCurrentScreen(false);
     m_groupManager->setShowOnlyMinimized(false);
 
-    kDebug() << "row coutn%%%%%%%%%%%%%%: " << m_tasksModel->rowCount();
-    kDebug() << "column coutn%%%%%%%%%%%%%%: " << m_tasksModel->columnCount();
-    
+    // check the model contents for debugging purposes when the data changes
+    connect(m_tasksModel, SIGNAL(dataChanged(QModelIndex,QModelIndex)), this, SLOT(checkModel()));
 
     Plasma::PackageStructure::Ptr structure = Plasma::PackageStructure::load("Plasma/Generic");
     m_package = new Plasma::Package(QString(), "org.kde.tasks", structure);
     m_declarativeWidget->setQmlPath(m_package->filePath("mainscript"));
     m_declarativeWidget->engine()->rootContext()->setContextProperty("tasksModel", QVariant::fromValue(m_tasksModel));
+}
+
+void Tasks::checkModel()
+{
+    kDebug() << "row count %%%%%%%%%%%%%%: " << m_tasksModel->rowCount();
+    kDebug() << "column count %%%%%%%%%%%%%%: " << m_tasksModel->columnCount();
 }
 
 //NOTE: NEVER CALLED, JUST YET
