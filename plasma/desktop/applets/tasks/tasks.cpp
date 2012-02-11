@@ -76,15 +76,26 @@ void Tasks::init()
     m_tasksModel = new TaskManager::TasksModel(m_groupManager, this);
     Q_ASSERT(m_tasksModel);
 
+    m_groupManager->setScreen(0);
+    m_groupManager->setShowOnlyCurrentActivity(false);
+    m_groupManager->setShowOnlyCurrentDesktop(false);
+    m_groupManager->setShowOnlyCurrentScreen(false);
+    m_groupManager->setShowOnlyMinimized(false);
+
+    kDebug() << "row coutn%%%%%%%%%%%%%%: " << m_tasksModel->rowCount();
+    kDebug() << "column coutn%%%%%%%%%%%%%%: " << m_tasksModel->columnCount();
+    
+
     Plasma::PackageStructure::Ptr structure = Plasma::PackageStructure::load("Plasma/Generic");
     m_package = new Plasma::Package(QString(), "org.kde.tasks", structure);
     m_declarativeWidget->setQmlPath(m_package->filePath("mainscript"));
     m_declarativeWidget->engine()->rootContext()->setContextProperty("tasksModel", QVariant::fromValue(m_tasksModel));
-
 }
 
+//NOTE: NEVER CALLED, JUST YET
 void Tasks::configChanged()
 {
+    Q_ASSERT(0);
     KConfigGroup cg = config();
     bool changed = false;
 
