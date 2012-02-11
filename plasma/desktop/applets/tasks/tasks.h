@@ -23,11 +23,12 @@
 #include <Plasma/Applet>
 
 namespace Plasma {
-    class Package;
     class DeclarativeWidget;
+    class Package;
 }
 
 namespace TaskManager {
+    class GroupManager;
     class TasksModel;
 }
 
@@ -40,11 +41,14 @@ public:
 
     void init();
 
+    void configChanged();
+
 private:
     Plasma::Package *m_package;
     Plasma::DeclarativeWidget *m_declarativeWidget;
 
     TaskManager::TasksModel *m_tasksModel;
+    TaskManager::GroupManager *m_groupManager;
 };
 
 #endif

@@ -43,11 +43,17 @@ K_EXPORT_PLASMA_APPLET(tasks, Tasks)
 Tasks::Tasks(QObject *parent, const QVariantList &args)
     : Plasma::Applet(parent, args)
     , m_tasksModel(0)
+    , m_groupManager(0)
 {
     resize(192, 128);
 
     setAspectRatioMode(Plasma::IgnoreAspectRatio);
     setHasConfigurationInterface(false);
+
+}
+
+Tasks::~Tasks()
+{
 
 }
 
@@ -57,19 +63,123 @@ void Tasks::init()
     m_declarativeWidget = new Plasma::DeclarativeWidget(this);
     lay->addItem(m_declarativeWidget);
 
+
+
+
+    m_groupManager = new TaskManager::GroupManager(this);
+
+    Plasma::Containment *c = containment();
+
+    if (c) {
+        m_groupManager->setScreen(c->screen());
+    }
+
+
+
+
+
+
     qRegisterMetaType<TaskManager::TasksModel*>();
 
-    m_tasksModel = new TaskManager::TasksModel();
+    m_tasksModel = new TaskManager::TasksModel(m_groupManager, this);
 
     Plasma::PackageStructure::Ptr structure = Plasma::PackageStructure::load("Plasma/Generic");
     m_package = new Plasma::Package(QString(), "org.kde.tasks", structure);
     m_declarativeWidget->setQmlPath(m_package->filePath("mainscript"));
     m_declarativeWidget->engine()->rootContext()->setContextProperty("tasksModel", QVariant::fromValue(m_tasksModel));
+
+
 }
 
-Tasks::~Tasks()
+void Tasks::configChanged()
 {
+    KConfigGroup cg = config();
+    bool changed = false;
 
+    // only update these if they have actually changed, because they make the
+    // group manager reload its tasks list
+    const bool showOnlyCurrentDesktop = cg.readEntry("showOnlyCurrentDesktop", false);
+    if (showOnlyCurrentDesktop != m_groupManager->showOnlyCurrentDesktop()) {
+        m_groupManager->setShowOnlyCurrentDesktop(showOnlyCurrentDesktop);
+        changed = true;
+    }
+
+    const bool showOnlyCurrentActivity = cg.readEntry("showOnlyCurrentActivity", true);
+    if (showOnlyCurrentActivity != m_groupManager->showOnlyCurrentActivity()) {
+        m_groupManager->setShowOnlyCurrentActivity(showOnlyCurrentActivity);
+        changed = true;
+    }
+
+    const bool showOnlyCurrentScreen = cg.readEntry("showOnlyCurrentScreen", false);
+    if (showOnlyCurrentScreen != m_groupManager->showOnlyCurrentScreen()) {
+        m_groupManager->setShowOnlyCurrentScreen(showOnlyCurrentScreen);
+        changed = true;
+    }
+
+    const bool showOnlyMinimized = cg.readEntry("showOnlyMinimized", false);
+    if (showOnlyMinimized != m_groupManager->showOnlyMinimized()) {
+        m_groupManager->setShowOnlyMinimized(showOnlyMinimized);
+        changed = true;
+    }
+
+    TaskManager::GroupManager::TaskGroupingStrategy groupingStrategy =
+    static_cast<TaskManager::GroupManager::TaskGroupingStrategy>(
+        cg.readEntry("groupingStrategy",
+                     static_cast<int>(TaskManager::GroupManager::ProgramGrouping))
+    );
+    if (groupingStrategy != m_groupManager->groupingStrategy()) {
+        m_groupManager->setGroupingStrategy(groupingStrategy);
+        changed = true;
+    }
+//FIXME: everything basically ;)
+    const bool onlyGroupWhenFull = cg.readEntry("groupWhenFull", true);
+    if (onlyGroupWhenFull != m_groupManager->onlyGroupWhenFull()) {
+//        adjustGroupingStrategy();
+        m_groupManager->setOnlyGroupWhenFull(onlyGroupWhenFull);
+        changed = true;
+    }
+
+    TaskManager::GroupManager::TaskSortingStrategy sortingStrategy =
+    static_cast<TaskManager::GroupManager::TaskSortingStrategy>(
+        cg.readEntry("sortingStrategy",
+                     static_cast<int>(TaskManager::GroupManager::AlphaSorting))
+    );
+
+    if (sortingStrategy != m_groupManager->sortingStrategy()) {
+        m_groupManager->setSortingStrategy(sortingStrategy);
+        changed = true;
+    }
+
+//    const int maxRows = cg.readEntry("maxRows", 2);
+//    if (maxRows != m_rootGroupItem->maxRows()) {
+//        m_rootGroupItem->setMaxRows(maxRows);
+//        changed = true;
+//    }
+//
+//    const bool forceRows = cg.readEntry("forceRows", false);
+//    if (forceRows != m_rootGroupItem->forceRows()) {
+//        m_rootGroupItem->setForceRows(forceRows);
+//        changed = true;
+//    }
+//
+//    const bool showTooltip = cg.readEntry("showTooltip", true);
+//    if (showTooltip != m_showTooltip) {
+//        m_showTooltip = showTooltip;
+//        changed = true;
+//    }
+//
+//    const bool highlightWindows = cg.readEntry("highlightWindows", false);
+//    if (highlightWindows != m_highlightWindows) {
+//        m_highlightWindows = highlightWindows;
+//        changed = true;
+//    }
+//
+    m_groupManager->readLauncherConfig();
+
+    if (changed) {
+//        emit settingsChanged();
+        update();
+    }
 }
 
 #include "tasks.moc"
