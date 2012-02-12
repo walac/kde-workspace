@@ -63,21 +63,6 @@ Item {
 
 
 
-        MouseArea {
-            property string currentId: "-1"                       // Original position in model
-            property int newIndex                            // Current Position in model
-            property int index: tasksGrid.indexAt(mouseX, mouseY) // Item underneath cursor
-            id: loc
-            anchors.fill: parent
-            onPressAndHold: currentId =tasksModel.get(1).name //tasksModel.get(newIndex = index).gridId.
-            onReleased: currentId = -1
-            onMousePositionChanged:
-            if (loc.currentId != "-1" && index != -1 && index != newIndex) {
-                
-                console.log("DEBUG" + "newindex: " + newIndex + " INDEX: " + index)
-                tasksModel.move(0 , 1, 1)//newIndex, newIndex = index, 1)
-            }
-        }
     }
 
     Component {
@@ -161,11 +146,15 @@ Item {
   
 
                 onClicked: {
+                    for (i in model) {
+                        print(i+" "+model[i])
+                    }
                    // if (!contextMenu) {
                     if (mouse.button == Qt.RightButton) {
                         contextMenu = contextMenuComponent.createObject(wrapper)
                         contextMenu.open()
                     }
+                    
                    // }
                 }
 
@@ -202,7 +191,7 @@ Item {
 
                 anchors { left: taskBackground.left; verticalCenter: taskBackground.verticalCenter }
 
-                icon: model.icon
+                icon: model.DecorationRole
                 width: 22
                 height: 22
             }
@@ -218,7 +207,7 @@ Item {
                 verticalAlignment: Text.AlignVCenter
 
                 clip: true
-                text: model.name
+                text: model.DisplayRole
             }
         }
     }
