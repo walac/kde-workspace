@@ -140,12 +140,12 @@ Item {
                         left: icon.left
                         right: text.right
                         top: parent.top
-                        bottom: icon.bottom
+                        bottom: text.bottom
 
-                        leftMargin: -5
-                        rightMargin: -5
-                        topMargin: -5
-                        bottomMargin: -5
+                        leftMargin: -8
+                        rightMargin: -8
+                        topMargin: -8
+                        bottomMargin: -8
                     }
 
                     imagePath: "widgets/tasks"
@@ -167,7 +167,6 @@ Item {
 
                     anchors { left: icon.right; top: icon.top; bottom: icon.bottom }
 
-                 //   height: tasksGrid.cellHeight
                     height: 20
                     width: 200
 
