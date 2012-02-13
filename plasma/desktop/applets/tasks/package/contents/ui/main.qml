@@ -131,27 +131,27 @@ Item {
 
 
 
- //               PlasmaCore.FrameSvgItem {
- //                   id: taskBackground
- //
- //                   width: 300; height: 30
- //
-////                    anchors { left: icon.left; top: icon.top; bottom: icon.bottom }
- //
- //                   imagePath: "widgets/tasks"
- //                   prefix: "normal"
- //                   //                prefix: {
- //                       //                    if (model.minimized) {
- //                           //                        "focus"
- //                   //                    } else {
- //                       //                        if (hovered) {
- //                           //                            "hover"
- //                   //                        } else {
- //                       //                            "normal"
- //                   //                        }
- //                   //                    }
- //                   //                }
- //               }
+                PlasmaCore.FrameSvgItem {
+                    id: taskBackground
+
+                    width: 300; height: 30
+
+//                    anchors { left: icon.left; top: icon.top; bottom: icon.bottom }
+
+                    imagePath: "widgets/tasks"
+                    prefix: "normal"
+                    //                prefix: {
+                        //                    if (model.minimized) {
+                            //                        "focus"
+                    //                    } else {
+                        //                        if (hovered) {
+                            //                            "hover"
+                    //                        } else {
+                        //                            "normal"
+                    //                        }
+                    //                    }
+                    //                }
+                }
 
                 QIconItem {
                     id: icon
