@@ -48,15 +48,131 @@ Item {
  //       plasmoid.aspectRatioMode = IgnoreAspectRatio;
     }
 
+    //                //FIXME: make it not be created in the first place..
+    //            //            visible: model.onCurrentDesktop
+    //
+    //            GridView.onRemove: SequentialAnimation {
+    //                PropertyAction { target: wrapper ; property: "GridView.delayRemove"; value: true }
+    //                NumberAnimation { target: taskBackground; property: "opacity"; to: 0; duration: 2500; easing.type: Easing.InOutQuad }
+    //                PropertyAction { target: wrapper; property: "GridView.delayRemove"; value: false }
+    //            }
+    //
+    //            states: [
+    //            State {
+    //                name: "none"
+    //                when: !hovered && !model.minimized
+    //
+    //                PropertyChanges {
+    //                    target: taskBackground
+    //                    prefix: "normal"
+    //                }
+    //            },
+    //            State {
+    //                name: "hovered"
+    //                when: hovered && !model.minimized
+    //
+    //                PropertyChanges {
+    //                    target: taskBackground
+    //                    prefix: "hover"
+    //                }
+    //            },
+    //            State {
+    //                name: "minimized"
+    //                when: model.minimized
+    //
+    //                PropertyChanges {
+    //                    target: taskBackground
+    //                    prefix: "focus"
+    //                }
+    //            }
+    //            ]
+    //
+    //            property bool hovered: false
+    //            property ContextMenu contextMenu
+    //            MouseArea {
+    //                id: mouseArea
+    //                anchors.fill: parent
+    //                hoverEnabled: true
+    //
+    //
+    //
+    //                onClicked: {
+    //                    for (i in model) {
+    //                        print(i+" "+model[i])
+    //                    }
+    //                    // if (!contextMenu) {
+    //                        if (mouse.button == Qt.RightButton) {
+    //                            contextMenu = contextMenuComponent.createObject(wrapper)
+    //                            contextMenu.open()
+    //                        }
+    //
+    //                        // }
+    //                }
+    //
+    //                onEntered: {
+    //                    hovered = true;
+    //                }
+    //
+    //                onExited: {
+    //                    hovered = false;
+    //                }
+    //            }
+    //        }
 
     Flow {
         anchors.fill: parent
         Repeater {
             model: tasksModel
-            Rectangle {
-                width: 100; height: 40
-                border.width: 1
-                color: "yellow"
+
+            Item {
+                id: wrapper
+                width: 30
+                height: 30
+
+
+
+           //     PlasmaCore.FrameSvgItem {
+           //         id: taskBackground
+           //
+           //         anchors { left: icon.left; right: text.right; top: icon.top; bottom: icon.bottom }
+           //
+           //         imagePath: "widgets/tasks"
+           //         //                prefix: {
+           //             //                    if (model.minimized) {
+           //                 //                        "focus"
+           //         //                    } else {
+           //             //                        if (hovered) {
+           //                 //                            "hover"
+           //         //                        } else {
+           //             //                            "normal"
+           //         //                        }
+           //         //                    }
+           //         //                }
+           //     }
+
+                QIconItem {
+                    id: icon
+
+                    anchors { left: taskBackground.left; verticalCenter: taskBackground.verticalCenter }
+                  
+                    icon: model.DecorationRole
+                    width: 22
+                    height: 22
+                }
+
+            //    PlasmaComponents.Label {
+            //        id: text
+            //
+            //        anchors { left: icon.right; top: icon.top; bottom: icon.bottom }
+            //
+            //        height: tasksGrid.cellHeight
+            //        width: 200
+            //
+            //        verticalAlignment: Text.AlignVCenter
+            //
+            //        clip: true
+            //        text: model.DisplayRole
+            //    }
             }
         }
     }
@@ -84,130 +200,10 @@ Item {
             }
         }
     }
+}
 
-//    Component {
-//        id: tasksDelegate
-//
-//        Item {
-//            id: wrapper
-//            width: 300
-//            height: 30
-//
-//            //FIXME: make it not be created in the first place..
-////            visible: model.onCurrentDesktop
-//
-//            GridView.onRemove: SequentialAnimation {
-//                PropertyAction { target: wrapper ; property: "GridView.delayRemove"; value: true }
-//                NumberAnimation { target: taskBackground; property: "opacity"; to: 0; duration: 2500; easing.type: Easing.InOutQuad }
-//                PropertyAction { target: wrapper; property: "GridView.delayRemove"; value: false }
-//            }
-//
-//            states: [
-//                State {
-//                    name: "none"
-//                    when: !hovered && !model.minimized
-//
-//                    PropertyChanges {
-//                        target: taskBackground
-//                        prefix: "normal"
-//                    }
-//                },
-//                State {
-//                    name: "hovered"
-//                    when: hovered && !model.minimized
-//
-//                    PropertyChanges {
-//                        target: taskBackground
-//                        prefix: "hover"
-//                    }
-//                },
-//                State {
-//                    name: "minimized"
-//                    when: model.minimized
-//
-//                    PropertyChanges {
-//                        target: taskBackground
-//                        prefix: "focus"
-//                    }
-//                }
-//            ]
-//
-//            property bool hovered: false
-//            property ContextMenu contextMenu
-//            MouseArea {
-//                id: mouseArea
-//                anchors.fill: parent
-//                hoverEnabled: true
-//
-//  
-//
-//                onClicked: {
-//                    for (i in model) {
-//                        print(i+" "+model[i])
-//                    }
-//                   // if (!contextMenu) {
-//                    if (mouse.button == Qt.RightButton) {
-//                        contextMenu = contextMenuComponent.createObject(wrapper)
-//                        contextMenu.open()
-//                    }
-//                    
-//                   // }
-//                }
-//
-//                onEntered: {
-//                    hovered = true;
-//                }
-//
-//                onExited: {
-//                    hovered = false;
-//                }
-//            }
-//
-//            PlasmaCore.FrameSvgItem {
-//                id: taskBackground
-//
-//                anchors { left: icon.left; right: text.right; top: icon.top; bottom: icon.bottom }
-//
-//                imagePath: "widgets/tasks"
-////                prefix: {
-////                    if (model.minimized) {
-////                        "focus"
-////                    } else {
-////                        if (hovered) {
-////                            "hover"
-////                        } else {
-////                            "normal"
-////                        }
-////                    }
-////                }
-//            }
-//
-//            QIconItem {
-//                id: icon
-//
-//                anchors { left: taskBackground.left; verticalCenter: taskBackground.verticalCenter }
-//
-//                icon: model.DecorationRole
-//                width: 22
-//                height: 22
-//            }
-//
-//            PlasmaComponents.Label {
-//                id: text
-//
-//                anchors { left: icon.right; top: icon.top; bottom: icon.bottom }
-//
-//                height: tasksGrid.cellHeight
-//                width: 200
-//
-//                verticalAlignment: Text.AlignVCenter
-//
-//                clip: true
-//                text: model.DisplayRole
-//            }
-//        }
-//    }
-//
+
+
 
 //        PlasmaComponents.Label {
 //            id: header
@@ -225,4 +221,3 @@ Item {
 //        text: i18n("Arbitrary String Which Says The Something")
 //    }
 //
-}
