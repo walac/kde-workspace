@@ -126,53 +126,57 @@ Item {
 
             Item {
                 id: wrapper
-                width: 30
-                height: 30
+                width: 400
+                height: 100
 
 
 
-           //     PlasmaCore.FrameSvgItem {
-           //         id: taskBackground
-           //
-           //         anchors { left: icon.left; right: text.right; top: icon.top; bottom: icon.bottom }
-           //
-           //         imagePath: "widgets/tasks"
-           //         //                prefix: {
-           //             //                    if (model.minimized) {
-           //                 //                        "focus"
-           //         //                    } else {
-           //             //                        if (hovered) {
-           //                 //                            "hover"
-           //         //                        } else {
-           //             //                            "normal"
-           //         //                        }
-           //         //                    }
-           //         //                }
-           //     }
+ //               PlasmaCore.FrameSvgItem {
+ //                   id: taskBackground
+ //
+ //                   width: 300; height: 30
+ //
+////                    anchors { left: icon.left; top: icon.top; bottom: icon.bottom }
+ //
+ //                   imagePath: "widgets/tasks"
+ //                   prefix: "normal"
+ //                   //                prefix: {
+ //                       //                    if (model.minimized) {
+ //                           //                        "focus"
+ //                   //                    } else {
+ //                       //                        if (hovered) {
+ //                           //                            "hover"
+ //                   //                        } else {
+ //                       //                            "normal"
+ //                   //                        }
+ //                   //                    }
+ //                   //                }
+ //               }
 
                 QIconItem {
                     id: icon
 
-                    anchors { left: taskBackground.left; verticalCenter: taskBackground.verticalCenter }
-                  
+//                    anchors { left: taskBackground.left; verticalCenter: taskBackground.verticalCenter }
+
                     icon: model.DecorationRole
                     width: 22
                     height: 22
                 }
 
-            //    PlasmaComponents.Label {
-            //        id: text
-            //
-            //        anchors { left: icon.right; top: icon.top; bottom: icon.bottom }
-            //
-            //        height: tasksGrid.cellHeight
-            //        width: 200
-            //
-            //        verticalAlignment: Text.AlignVCenter
-            //
-            //        clip: true
-            //        text: model.DisplayRole
-            //    }
+                PlasmaComponents.Label {
+                    id: text
+
+                    anchors { left: icon.right; top: icon.top; bottom: icon.bottom }
+
+                 //   height: tasksGrid.cellHeight
+                    height: 20
+                    width: 200
+
+                    verticalAlignment: Text.AlignVCenter
+
+                    clip: true
+                    text: model.DisplayRole
+                }
             }
         }
     }
