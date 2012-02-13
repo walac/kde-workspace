@@ -121,6 +121,14 @@ Item {
 
     Flow {
         anchors.fill: parent
+
+        move: Transition {
+            NumberAnimation {
+                properties: "x,y"
+                easing {type: Easing.OutBack}
+            }
+        }
+
         Repeater {
             model: tasksModel
 
@@ -128,8 +136,6 @@ Item {
                 id: wrapper
                 width: taskBackground.width
                 height: taskBackground.height
-
-
 
                 PlasmaCore.FrameSvgItem {
                     id: taskBackground
