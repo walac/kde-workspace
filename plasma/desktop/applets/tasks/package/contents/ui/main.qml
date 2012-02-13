@@ -134,29 +134,18 @@ Item {
                 PlasmaCore.FrameSvgItem {
                     id: taskBackground
 
-                    width: 300; height: 30
+                    width: 300
 
-//                    anchors { left: icon.left; top: icon.top; bottom: icon.bottom }
+                    anchors { left: icon.left; right: text.right; top: icon.top; bottom: icon.bottom }
 
                     imagePath: "widgets/tasks"
                     prefix: "normal"
-                    //                prefix: {
-                        //                    if (model.minimized) {
-                            //                        "focus"
-                    //                    } else {
-                        //                        if (hovered) {
-                            //                            "hover"
-                    //                        } else {
-                        //                            "normal"
-                    //                        }
-                    //                    }
-                    //                }
                 }
 
                 QIconItem {
                     id: icon
 
-//                    anchors { left: taskBackground.left; verticalCenter: taskBackground.verticalCenter }
+                    anchors { left: taskBackground.left; verticalCenter: taskBackground.verticalCenter }
 
                     icon: model.DecorationRole
                     width: 22
