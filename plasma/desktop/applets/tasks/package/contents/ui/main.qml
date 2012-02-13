@@ -127,7 +127,7 @@ Item {
             Item {
                 id: wrapper
                 width: taskBackground.width
-                height: 100
+                height: taskBackground.height
 
 
 
