@@ -126,7 +126,7 @@ Item {
 
             Item {
                 id: wrapper
-                width: 400
+                width: taskBackground.width
                 height: 100
 
 
@@ -134,7 +134,7 @@ Item {
                 PlasmaCore.FrameSvgItem {
                     id: taskBackground
 
-                    width: 300
+//                    width: text.width + icon.width
 
                     anchors { left: icon.left; right: text.right; top: icon.top; bottom: icon.bottom }
 
