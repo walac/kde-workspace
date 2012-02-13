@@ -136,7 +136,17 @@ Item {
 
 //                    width: text.width + icon.width
 
-                    anchors { left: icon.left; right: text.right; top: icon.top; bottom: icon.bottom }
+                    anchors {
+                        left: icon.left
+                        right: text.right
+                        top: parent.top
+                        bottom: icon.bottom
+
+                        leftMargin: -5
+                        rightMargin: -5
+                        topMargin: -5
+                        bottomMargin: -5
+                    }
 
                     imagePath: "widgets/tasks"
                     prefix: "normal"
@@ -145,7 +155,7 @@ Item {
                 QIconItem {
                     id: icon
 
-                    anchors { left: taskBackground.left; verticalCenter: taskBackground.verticalCenter }
+                    anchors { left: parent.left; verticalCenter: taskBackground.verticalCenter }
 
                     icon: model.DecorationRole
                     width: 22
