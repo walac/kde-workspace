@@ -57,35 +57,7 @@ Item {
     //                PropertyAction { target: wrapper; property: "GridView.delayRemove"; value: false }
     //            }
     //
-    //            states: [
-    //            State {
-    //                name: "none"
-    //                when: !hovered && !model.minimized
-    //
-    //                PropertyChanges {
-    //                    target: taskBackground
-    //                    prefix: "normal"
-    //                }
-    //            },
-    //            State {
-    //                name: "hovered"
-    //                when: hovered && !model.minimized
-    //
-    //                PropertyChanges {
-    //                    target: taskBackground
-    //                    prefix: "hover"
-    //                }
-    //            },
-    //            State {
-    //                name: "minimized"
-    //                when: model.minimized
-    //
-    //                PropertyChanges {
-    //                    target: taskBackground
-    //                    prefix: "focus"
-    //                }
-    //            }
-    //            ]
+
     //
     //            property bool hovered: false
     //            property ContextMenu contextMenu
@@ -137,6 +109,37 @@ Item {
                 width: taskBackground.width
                 height: taskBackground.height
 
+                states: [
+
+                    State {
+                        name: "none"
+                        when: !hovered && !model.Minimized
+
+                        PropertyChanges {
+                            target: taskBackground
+                            prefix: "normal"
+                        }
+                    },
+                    State {
+                        name: "hovered"
+                        when: hovered && !model.Minimized
+
+                        PropertyChanges {
+                            target: taskBackground
+                            prefix: "hover"
+                        }
+                    },
+                    State {
+                        name: "minimized"
+                        when: model.Minimized
+
+                        PropertyChanges {
+                            target: taskBackground
+                            prefix: "focus"
+                        }
+                    }
+                ]
+
                 PlasmaCore.FrameSvgItem {
                     id: taskBackground
 
@@ -155,7 +158,7 @@ Item {
                     }
 
                     imagePath: "widgets/tasks"
-                    prefix: "normal"
+//                    prefix: model.Minimized ? "normal" : ""
                 }
 
                 QIconItem {
