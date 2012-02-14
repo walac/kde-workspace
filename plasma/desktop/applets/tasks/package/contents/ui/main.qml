@@ -59,36 +59,7 @@ Item {
     //
 
     //
-    //            property bool hovered: false
-    //            property ContextMenu contextMenu
-    //            MouseArea {
-    //                id: mouseArea
-    //                anchors.fill: parent
-    //                hoverEnabled: true
-    //
-    //
-    //
-    //                onClicked: {
-    //                    for (i in model) {
-    //                        print(i+" "+model[i])
-    //                    }
-    //                    // if (!contextMenu) {
-    //                        if (mouse.button == Qt.RightButton) {
-    //                            contextMenu = contextMenuComponent.createObject(wrapper)
-    //                            contextMenu.open()
-    //                        }
-    //
-    //                        // }
-    //                }
-    //
-    //                onEntered: {
-    //                    hovered = true;
-    //                }
-    //
-    //                onExited: {
-    //                    hovered = false;
-    //                }
-    //            }
+
     //        }
 
     Flow {
@@ -139,6 +110,33 @@ Item {
                         }
                     }
                 ]
+
+                property bool hovered: false
+                property ContextMenu contextMenu
+                MouseArea {
+                    id: mouseArea
+                    anchors.fill: parent
+                    hoverEnabled: true
+
+                    onClicked: {
+                        for (i in model) {
+                            print(i+" "+model[i])
+                        }
+                        // if (!contextMenu) {
+                        if (mouse.button == Qt.RightButton) {
+                            contextMenu = contextMenuComponent.createObject(wrapper)
+                            contextMenu.open()
+                        }
+                    }
+
+                    onEntered: {
+                        hovered = true;
+                    }
+
+                    onExited: {
+                        hovered = false;
+                    }
+                }
 
                 PlasmaCore.FrameSvgItem {
                     id: taskBackground
