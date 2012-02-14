@@ -63,6 +63,7 @@ Item {
     //        }
 
     Flow {
+        id: flower
         anchors.fill: parent
 
         move: Transition {
@@ -73,6 +74,7 @@ Item {
         }
 
         Repeater {
+            id: repeater
             model: tasksModel
 
             Item {
@@ -126,7 +128,7 @@ Item {
 
                         // if (!contextMenu) {
                         if (mouse.button == Qt.RightButton) {
-                            contextMenu = contextMenuComponent.createObject(wrapper)
+                            contextMenu = contextMenuComponent.createObject(taskBackground)
                             contextMenu.open()
                         }
                     }
@@ -184,33 +186,44 @@ Item {
                     clip: true
                     text: model.DisplayRole
                 }
+
+                Component {
+                    id: contextMenuComponent
+                    PlasmaComponents.ContextMenu {
+                        PlasmaComponents.MenuItem {
+//                            text: model.DisplayRole
+                            text: "Close"
+                        //  onClicked: {
+                                //contentMenuButton.parent.color = "White"
+                        // }
+                        }
+                        PlasmaComponents.MenuItem {
+                            text: "Task Manager Settings"
+            //               onClicked: contentMenuButton.parent.color = "Red"
+                        }
+                        PlasmaComponents.MenuItem {
+                            text: "Show A Launcher When Not Running"
+            //              onClicked: contentMenuButton.parent.color = "LightBlue"
+                        }
+                        PlasmaComponents.MenuItem {
+                            text: "Start New Instance"
+            //             onClicked: contentMenuButton.parent.color = "LightGreen"
+                        }
+                        PlasmaComponents.MenuItem {
+                            text: "Minimize"
+            //             onClicked: contentMenuButton.parent.color = "LightGreen"
+                        }
+                        PlasmaComponents.MenuItem {
+                            text: "Maximize"
+            //             onClicked: contentMenuButton.parent.color = "LightGreen"
+                        }
+                    }
+                }
             }
         }
     }
 
-    Component {
-        id: contextMenuComponent
-        PlasmaComponents.ContextMenu {
-            PlasmaComponents.MenuItem {
-                text: "White"
-              //  onClicked: {
-                    //contentMenuButton.parent.color = "White"
-               // }
-            }
-            PlasmaComponents.MenuItem {
-                text: "Red"
- //               onClicked: contentMenuButton.parent.color = "Red"
-            }
-            PlasmaComponents.MenuItem {
-                text: "LightBlue"
-  //              onClicked: contentMenuButton.parent.color = "LightBlue"
-            }
-            PlasmaComponents.MenuItem {
-                text: "LightGreen"
-   //             onClicked: contentMenuButton.parent.color = "LightGreen"
-            }
-        }
-    }
+    
 }
 
 
