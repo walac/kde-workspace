@@ -117,11 +117,13 @@ Item {
                     id: mouseArea
                     anchors.fill: parent
                     hoverEnabled: true
+                    acceptedButtons: Qt.RightButton
 
                     onClicked: {
-                        for (i in model) {
-                            print(i+" "+model[i])
-                        }
+ //                       for (i in model) {
+//                            print(i + " " + model[i])
+  //                      }
+
                         // if (!contextMenu) {
                         if (mouse.button == Qt.RightButton) {
                             contextMenu = contextMenuComponent.createObject(wrapper)
