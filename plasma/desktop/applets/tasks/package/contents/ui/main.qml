@@ -191,31 +191,33 @@ Item {
                     id: contextMenuComponent
                     PlasmaComponents.ContextMenu {
                         PlasmaComponents.MenuItem {
-//                            text: model.DisplayRole
+                            //text: model.DisplayRole
                             text: "Close"
-                        //  onClicked: {
-                                //contentMenuButton.parent.color = "White"
-                        // }
                         }
+
+                        PlasmaComponents.MenuItem {
+                            text: "More Actions"
+
+                        }
+
                         PlasmaComponents.MenuItem {
                             text: "Task Manager Settings"
-            //               onClicked: contentMenuButton.parent.color = "Red"
                         }
+
                         PlasmaComponents.MenuItem {
                             text: "Show A Launcher When Not Running"
-            //              onClicked: contentMenuButton.parent.color = "LightBlue"
                         }
+
                         PlasmaComponents.MenuItem {
                             text: "Start New Instance"
-            //             onClicked: contentMenuButton.parent.color = "LightGreen"
                         }
+
                         PlasmaComponents.MenuItem {
                             text: "Minimize"
-            //             onClicked: contentMenuButton.parent.color = "LightGreen"
                         }
+
                         PlasmaComponents.MenuItem {
                             text: "Maximize"
-            //             onClicked: contentMenuButton.parent.color = "LightGreen"
                         }
                     }
                 }
