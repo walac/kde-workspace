@@ -235,6 +235,8 @@ void SearchLaunch::init()
     m_filterTabs->addTab(KIcon("applications-other"), "Apps");
     m_filterTabs->addTab(KIcon("folder-documents"), "Files");
     m_filterTabs->addTab(KIcon("applications-internet"), "Internet");
+    m_filterTabs->addTab(KIcon("office-address-book"), "Social");
+
     connect(m_filterTabs, SIGNAL(currentChanged(int)), this, SLOT(filterTabsChanged(int)));
 
     filterLayout->addAnchors(m_filterTabs, filterLayout, Qt::Vertical);
@@ -763,28 +765,38 @@ void SearchLaunch::filterTabsChanged(int index)
     QString chosenRunnerFilter;
     Plasma::RunnerManager *manager = m_runnerModel->runnerManager();
 
-    // Available Tabs:
-    // All
-    // Apps
-    // Files
-    // Internet
 
     KService::List offers = KServiceTypeTrader::self()->query("Plasma/Runner");
+    //FIXME: redo with KPluginInfo fromservices query.
     QList<KPluginInfo> runnerInfo = KPluginInfo::fromServices(offers);
+
+    kDebug() << "SREICH SAL, category: " << runnerInfo.at(17).pluginName() << runnerInfo.at(17).category();
+
+    // Available Tabs, from filters:
     switch(index) {
+
+    // All
     case 0:
         break;
 
+    // Apps
     case 1:
         manager->setAllowedRunners(QStringList() << "services");
         break;
 
+    // Files
     case 2:
         manager->setAllowedRunners(QStringList() << "places" << "solid" << "locations" << "recentdocuments");
         break;
 
+    // Internet
     case 3:
         manager->setAllowedRunners(QStringList() << "wikipedia" << "webshortcuts" << "techbase" << "browserhistory");
+        break;
+
+    // Social
+    case 4:
+        manager->setAllowedRunners(QStringList() << "contacts" << "webshortcuts" << "techbase" << "browserhistory");
         break;
 
     default:
