@@ -227,15 +227,14 @@ void SearchLaunch::init()
     searchLayout->addAnchors(m_backButton, searchLayout, Qt::Vertical);
     searchLayout->addAnchor(m_backButton, Qt::AnchorRight, m_searchField, Qt::AnchorLeft);
 
-
     QGraphicsAnchorLayout *filterLayout = new QGraphicsAnchorLayout();
     filterLayout->setSizePolicy(QSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum));
 
     m_filterTabs = new Plasma::TabBar(this);
     m_filterTabs->addTab("All");
-    m_filterTabs->addTab("Apps");
-    m_filterTabs->addTab("Files");
-    m_filterTabs->addTab("Internet");
+    m_filterTabs->addTab(KIcon("applications-other"), "Apps");
+    m_filterTabs->addTab(KIcon("folder-documents"), "Files");
+    m_filterTabs->addTab(KIcon("applications-internet"), "Internet");
     connect(m_filterTabs, SIGNAL(currentChanged(int)), this, SLOT(filterTabsChanged(int)));
 
     filterLayout->addAnchors(m_filterTabs, filterLayout, Qt::Vertical);
