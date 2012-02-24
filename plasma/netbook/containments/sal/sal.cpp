@@ -54,6 +54,7 @@
 #include <Plasma/IconWidget>
 #include <Plasma/RunnerManager>
 #include <Plasma/ScrollWidget>
+#include <Plasma/TabBar>
 #include <Plasma/ToolButton>
 
 
@@ -64,6 +65,7 @@ SearchLaunch::SearchLaunch(QObject *parent, const QVariantList &args)
       m_queryCounter(0),
       m_maxColumnWidth(0),
       m_searchField(0),
+      m_filterTabs(0),
       m_resultsView(0),
       m_orientation(Qt::Vertical),
       m_firstItem(0),
@@ -224,6 +226,15 @@ void SearchLaunch::init()
     searchLayout->addAnchors(m_backButton, searchLayout, Qt::Vertical);
     searchLayout->addAnchor(m_backButton, Qt::AnchorRight, m_searchField, Qt::AnchorLeft);
 
+    m_filterTabs = new Plasma::TabBar(this);
+    m_filterTabs->addTab("Apps");
+    m_filterTabs->addTab("Files");
+    m_filterTabs->addTab("Internet");
+
+    searchLayout->addAnchor(m_filterTabs, Qt::AnchorTop, m_searchField, Qt::AnchorBottom);
+    searchLayout->addAnchor(m_filterTabs, Qt::AnchorLeft, m_searchField, Qt::AnchorLeft);
+    searchLayout->addAnchor(m_filterTabs, Qt::AnchorRight, m_searchField, Qt::AnchorRight);
+
 
     // add our layouts to main vertical layout
     m_mainLayout->addItem(m_stripWidget);
@@ -275,6 +286,8 @@ void SearchLaunch::configChanged()
             connect(addApplicationsAction, SIGNAL(triggered()), this, SLOT(launchPackageManager()));
         }
     }
+
+    m_runnerModel->runnerManager()->setAllowedRunners(QStringList() << "services");
 }
 
 void SearchLaunch::availableScreenRegionChanged()

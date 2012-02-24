@@ -45,6 +45,7 @@ namespace Plasma
     class LineEdit;
     class Frame;
     class FrameSvg;
+    class TabBar;
 }
 
 class SearchLaunch : public Plasma::Containment
@@ -109,6 +110,7 @@ private:
     QTimer *m_searchTimer;
 
     Plasma::LineEdit *m_searchField;
+    Plasma::TabBar *m_filterTabs;
 
     ItemView *m_resultsView;
     StripWidget *m_stripWidget;

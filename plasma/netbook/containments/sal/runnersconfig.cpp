@@ -38,6 +38,10 @@ RunnersConfig::RunnersConfig(Plasma::RunnerManager *manager, QWidget *parent)
 
     KService::List offers = KServiceTypeTrader::self()->query("Plasma/Runner");
     QList<KPluginInfo> runnerInfo = KPluginInfo::fromServices(offers);
+    foreach (const KPluginInfo info, runnerInfo) {
+        //TODO: CREATE CATEGORIES FOR RUNNERS
+        kDebug() << "SREICH RUNNERSCONFIG: " << info.name() << info.pluginName();
+    }
     addPlugins(runnerInfo, KPluginSelector::ReadConfigFile, i18n("Available Features"), QString(), KGlobal::config());
 }
 
