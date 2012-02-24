@@ -56,6 +56,7 @@
 #include <Plasma/ScrollWidget>
 #include <Plasma/TabBar>
 #include <Plasma/ToolButton>
+#include <KServiceTypeTrader>
 
 
 SearchLaunch::SearchLaunch(QObject *parent, const QVariantList &args)
@@ -226,6 +227,10 @@ void SearchLaunch::init()
     searchLayout->addAnchors(m_backButton, searchLayout, Qt::Vertical);
     searchLayout->addAnchor(m_backButton, Qt::AnchorRight, m_searchField, Qt::AnchorLeft);
 
+
+    QGraphicsAnchorLayout *filterLayout = new QGraphicsAnchorLayout();
+    filterLayout->setSizePolicy(QSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum));
+
     m_filterTabs = new Plasma::TabBar(this);
     m_filterTabs->addTab("All");
     m_filterTabs->addTab("Apps");
@@ -233,13 +238,12 @@ void SearchLaunch::init()
     m_filterTabs->addTab("Internet");
     connect(m_filterTabs, SIGNAL(currentChanged(int)), this, SLOT(filterTabsChanged(int)));
 
-    searchLayout->addAnchor(m_filterTabs, Qt::AnchorTop, m_searchField, Qt::AnchorBottom);
-    searchLayout->addAnchor(m_filterTabs, Qt::AnchorLeft, m_searchField, Qt::AnchorLeft);
-    searchLayout->addAnchor(m_filterTabs, Qt::AnchorRight, m_searchField, Qt::AnchorRight);
-
+    filterLayout->addAnchors(m_filterTabs, filterLayout, Qt::Vertical);
+    filterLayout->addAnchor(m_filterTabs, Qt::AnchorHorizontalCenter, filterLayout, Qt::AnchorHorizontalCenter);
 
     // add our layouts to main vertical layout
     m_mainLayout->addItem(m_stripWidget);
+    m_mainLayout->addItem(filterLayout);
     m_mainLayout->addItem(searchLayout);
     m_mainLayout->addItem(m_resultsLayout);
 
@@ -758,25 +762,30 @@ void SearchLaunch::saveFavourites()
 void SearchLaunch::filterTabsChanged(int index)
 {
     QString chosenRunnerFilter;
+    Plasma::RunnerManager *manager = m_runnerModel->runnerManager();
 
-    // available tabs...
+    // Available Tabs:
     // All
     // Apps
     // Files
     // Internet
+
+    KService::List offers = KServiceTypeTrader::self()->query("Plasma/Runner");
+    QList<KPluginInfo> runnerInfo = KPluginInfo::fromServices(offers);
     switch(index) {
     case 0:
-  //      KService::List offers = KServiceTypeTrader::self()->query("Plasma/Runner");
- //       QList<KPluginInfo> runnerInfo = KPluginInfo::fromServices(offers);
-//        m_runnerModel->runnerManager()->setAllowedRunners(runnerInfo);
         break;
 
     case 1:
-        m_runnerModel->runnerManager()->setAllowedRunners(QStringList() << "services");
+        manager->setAllowedRunners(QStringList() << "services");
         break;
 
     case 2:
-        m_runnerModel->runnerManager()->setAllowedRunners(QStringList() << "places" << "solid" << "locations" << "recentdocuments");
+        manager->setAllowedRunners(QStringList() << "places" << "solid" << "locations" << "recentdocuments");
+        break;
+
+    case 3:
+        manager->setAllowedRunners(QStringList() << "wikipedia" << "webshortcuts" << "techbase" << "browserhistory");
         break;
 
     default:
