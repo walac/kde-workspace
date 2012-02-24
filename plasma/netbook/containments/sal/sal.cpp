@@ -288,8 +288,6 @@ void SearchLaunch::configChanged()
             connect(addApplicationsAction, SIGNAL(triggered()), this, SLOT(launchPackageManager()));
         }
     }
-
-    m_runnerModel->runnerManager()->setAllowedRunners(QStringList() << "services");
 }
 
 void SearchLaunch::availableScreenRegionChanged()
@@ -757,9 +755,34 @@ void SearchLaunch::saveFavourites()
     m_stripWidget->save(cg);
 }
 
-void SearchLaunch::filterTabsChanged(int)
+void SearchLaunch::filterTabsChanged(int index)
 {
-    
+    QString chosenRunnerFilter;
+
+    // available tabs...
+    // All
+    // Apps
+    // Files
+    // Internet
+    switch(index) {
+    case 0:
+  //      KService::List offers = KServiceTypeTrader::self()->query("Plasma/Runner");
+ //       QList<KPluginInfo> runnerInfo = KPluginInfo::fromServices(offers);
+//        m_runnerModel->runnerManager()->setAllowedRunners(runnerInfo);
+        break;
+
+    case 1:
+        m_runnerModel->runnerManager()->setAllowedRunners(QStringList() << "services");
+        break;
+
+    case 2:
+        m_runnerModel->runnerManager()->setAllowedRunners(QStringList() << "places" << "solid" << "locations" << "recentdocuments");
+        break;
+
+    default:
+        //unhandled tab index
+        Q_ASSERT(0);
+    }
 }
 
 K_EXPORT_PLASMA_APPLET(sal, SearchLaunch)

@@ -93,7 +93,7 @@ private Q_SLOTS:
 
     void saveFavourites();
 
-    void filterTabsChanged(int);
+    void filterTabsChanged(int index);
 
 private:
     /**
