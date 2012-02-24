@@ -227,9 +227,11 @@ void SearchLaunch::init()
     searchLayout->addAnchor(m_backButton, Qt::AnchorRight, m_searchField, Qt::AnchorLeft);
 
     m_filterTabs = new Plasma::TabBar(this);
+    m_filterTabs->addTab("All");
     m_filterTabs->addTab("Apps");
     m_filterTabs->addTab("Files");
     m_filterTabs->addTab("Internet");
+    connect(m_filterTabs, SIGNAL(currentChanged(int)), this, SLOT(filterTabsChanged(int)));
 
     searchLayout->addAnchor(m_filterTabs, Qt::AnchorTop, m_searchField, Qt::AnchorBottom);
     searchLayout->addAnchor(m_filterTabs, Qt::AnchorLeft, m_searchField, Qt::AnchorLeft);
@@ -753,6 +755,11 @@ void SearchLaunch::saveFavourites()
 {
     KConfigGroup cg = config();
     m_stripWidget->save(cg);
+}
+
+void SearchLaunch::filterTabsChanged(int)
+{
+    
 }
 
 K_EXPORT_PLASMA_APPLET(sal, SearchLaunch)

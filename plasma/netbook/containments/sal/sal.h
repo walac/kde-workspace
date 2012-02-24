@@ -93,6 +93,8 @@ private Q_SLOTS:
 
     void saveFavourites();
 
+    void filterTabsChanged(int);
+
 private:
     /**
      * update the formfactor based on the location
