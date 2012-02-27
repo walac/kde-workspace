@@ -69,7 +69,10 @@ endif(KWIN_BUILD_KCMS)
 if( KWIN_BUILD_DECORATIONS )
     add_subdirectory( clients )
 endif( KWIN_BUILD_DECORATIONS )
-add_subdirectory( data )
+
+if(${KDE_PLATFORM_PROFILE} STREQUAL "Desktop")
+    add_subdirectory( data )
+endif(${KDE_PLATFORM_PROFILE} STREQUAL "Desktop")
 
 add_subdirectory( effects )
 
