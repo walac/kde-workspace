@@ -234,8 +234,8 @@ void SearchLaunch::init()
     m_filterTabs->addTab("All");
     m_filterTabs->addTab(KIcon("applications-other"), "Apps");
     m_filterTabs->addTab(KIcon("folder-documents"), "Files");
-    m_filterTabs->addTab(KIcon("applications-internet"), "Internet");
-    m_filterTabs->addTab(KIcon("office-address-book"), "Social");
+    m_filterTabs->addTab(KIcon("applications-internet"), "YouTube");
+    m_filterTabs->addTab(KIcon("applications-internet"), "Bing Images");
 
     connect(m_filterTabs, SIGNAL(currentChanged(int)), this, SLOT(filterTabsChanged(int)));
 
@@ -355,8 +355,6 @@ void SearchLaunch::doSearch(const QString &query, const QString &runner)
 void SearchLaunch::reset()
 {
     if (m_resultsView->model() != m_serviceModel || m_serviceModel->path() != "/") {
-        m_searchField->setText(QString());
-        doSearch(QString());
         m_serviceModel->setPath("/");
         m_resultsView->setModel(m_serviceModel);
     }
@@ -789,20 +787,21 @@ void SearchLaunch::filterTabsChanged(int index)
         manager->setAllowedRunners(QStringList() << "places" << "solid" << "locations" << "recentdocuments");
         break;
 
-    // Internet
+    // YouTube
     case 3:
-        manager->setAllowedRunners(QStringList() << "wikipedia" << "webshortcuts" << "techbase" << "browserhistory");
+        manager->setAllowedRunners(QStringList() << "youtube");
         break;
 
-    // Social
+    // Bing
     case 4:
-        manager->setAllowedRunners(QStringList() << "contacts" << "webshortcuts" << "techbase" << "browserhistory");
+        manager->setAllowedRunners(QStringList() << "bing");
         break;
 
     default:
         //unhandled tab index
         Q_ASSERT(0);
     }
+    query();
 }
 
 K_EXPORT_PLASMA_APPLET(sal, SearchLaunch)
