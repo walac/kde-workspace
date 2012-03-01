@@ -27,6 +27,8 @@
 #include "iconactioncollection.h"
 #include "models/commonmodel.h"
 #include "models/kservicemodel.h"
+#include <kde4/KDE/Plasma/RunnerManager>
+#include <kde4/plasma/runnermanager.h>
 
 #include <QAction>
 #include <QTimer>
@@ -765,42 +767,47 @@ void SearchLaunch::filterTabsChanged(int index)
 
 
     KService::List offers = KServiceTypeTrader::self()->query("Plasma/Runner");
-    //FIXME: redo with KPluginInfo fromservices query.
-    QList<KPluginInfo> runnerInfo = KPluginInfo::fromServices(offers);
 
-    kDebug() << "SREICH SAL, category: " << runnerInfo.at(17).pluginName() << runnerInfo.at(17).category();
-
+    QStringList runnerList;
     // Available Tabs, from filters:
     switch(index) {
 
+    //FIXME: nasty due to no libplasma1 help, should be moved into runnermanager and made generic
+    //through categories
     // All
     case 0:
+        foreach (const KPluginInfo& info, KPluginInfo::fromServices(offers)) {
+            runnerList << info.pluginName();
+        }
         break;
 
     // Apps
     case 1:
-        manager->setAllowedRunners(QStringList() << "services");
+        runnerList << "services";
         break;
 
     // Files
     case 2:
-        manager->setAllowedRunners(QStringList() << "places" << "solid" << "locations" << "recentdocuments");
+        runnerList << "places" << "solid" << "locations" << "recentdocuments";
         break;
 
     // YouTube
     case 3:
-        manager->setAllowedRunners(QStringList() << "youtube");
+        runnerList << "youtube";
         break;
 
     // Bing
     case 4:
-        manager->setAllowedRunners(QStringList() << "bing");
+        runnerList << "bing";
         break;
 
     default:
         //unhandled tab index
         Q_ASSERT(0);
     }
+
+    manager->setAllowedRunners(runnerList);
+
     query();
 }
 
