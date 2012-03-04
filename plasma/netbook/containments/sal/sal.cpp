@@ -27,8 +27,6 @@
 #include "iconactioncollection.h"
 #include "models/commonmodel.h"
 #include "models/kservicemodel.h"
-#include <kde4/KDE/Plasma/RunnerManager>
-#include <kde4/plasma/runnermanager.h>
 
 #include <QAction>
 #include <QTimer>
