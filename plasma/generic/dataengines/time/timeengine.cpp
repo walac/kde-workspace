@@ -111,6 +111,7 @@ bool TimeEngine::updateSourceEvent(const QString &tz)
 
     if (s) {
         s->updateTime();
+#warning "What to do with scheduleSourcesUpdated()?"
         //scheduleSourcesUpdated();
         return true;
     }
