@@ -8,11 +8,11 @@ if(${KDE_PLATFORM_PROFILE} STREQUAL "Desktop")
 endif(${KDE_PLATFORM_PROFILE} STREQUAL "Desktop")
 
 add_subdirectory(applets)
-add_subdirectory(dataengines)
 add_subdirectory(runners)
 add_subdirectory(scriptengines)
 add_subdirectory(shells)
 endif (0)
 
+add_subdirectory(dataengines)
 add_subdirectory(wallpapers)
 
