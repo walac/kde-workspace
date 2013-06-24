@@ -30,6 +30,7 @@
 
 #include <KDebug>
 #include <KSystemTimeZones>
+#include <KLocalizedString>
 
 #include "solarsystem.h"
 

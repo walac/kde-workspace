@@ -21,11 +21,14 @@
 #include "timeengine.h"
 
 #include <QDate>
+#include <QDebug>
 #include <QDBusConnection>
 #include <QStringList>
 #include <QTime>
 
+#include <KGlobal>
 #include <KLocale>
+#include <KLocalizedString>
 #include <KSystemTimeZones>
 #include <KDateTime>
 
@@ -36,17 +39,28 @@
 #undef timezone
 #endif
 
-TimeEngine::TimeEngine(QObject *parent, const QVariantList &args)
-    : Plasma::DataEngine(parent, args)
+TimeEngine::TimeEngine(const KPluginInfo &plugin, QObject *parent)
+    : Plasma::DataEngine(plugin, parent)
 {
-    Q_UNUSED(args)
     setMinimumPollingInterval(333);
+    qDebug() << "right constructor for timeengine :)";
 
     // To have translated timezone names
     // (effectively a noop if the catalog is already present).
-    KGlobal::locale()->insertCatalog("timezones4");
+    //KGlobal::locale()->insertCatalog("timezones4");
 }
 
+/*
+TimeEngine::TimeEngine(QObject* parent, const QVariantList &args)
+    : Plasma::DataEngine(KPluginInfo(), parent)
+{
+    setMinimumPollingInterval(333);
+    qDebug() << "wrong constructor for timeengine :(";
+    // To have translated timezone names
+    // (effectively a noop if the catalog is already present).
+    //KGlobal::locale()->insertCatalog("timezones4");
+}
+*/
 TimeEngine::~TimeEngine()
 {
 }
@@ -62,7 +76,7 @@ void TimeEngine::init()
 
 void TimeEngine::clockSkewed()
 {
-    kDebug() << "Time engine Clock skew signaled";
+    qDebug() << "Time engine Clock skew signaled";
     updateAllSources();
     forceImmediateUpdateOfAllVisualizations();
 }
@@ -97,7 +111,7 @@ bool TimeEngine::updateSourceEvent(const QString &tz)
 
     if (s) {
         s->updateTime();
-        scheduleSourcesUpdated();
+        //scheduleSourcesUpdated();
         return true;
     }
 

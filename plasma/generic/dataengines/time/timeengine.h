@@ -34,7 +34,8 @@ class TimeEngine : public Plasma::DataEngine
     Q_OBJECT
 
     public:
-        TimeEngine(QObject *parent, const QVariantList &args);
+        explicit TimeEngine(const KPluginInfo &plugin, QObject *parent=0);
+        //TimeEngine(QObject* parent, const QVariantList& args);
         ~TimeEngine();
 
         void init();
