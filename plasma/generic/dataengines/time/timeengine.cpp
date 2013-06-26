@@ -50,7 +50,6 @@ TimeEngine::TimeEngine(const KPluginInfo &plugin, QObject *parent)
     //KGlobal::locale()->insertCatalog("timezones4");
 }
 
-/*
 TimeEngine::TimeEngine(QObject* parent, const QVariantList &args)
     : Plasma::DataEngine(KPluginInfo(), parent)
 {
@@ -60,7 +59,7 @@ TimeEngine::TimeEngine(QObject* parent, const QVariantList &args)
     // (effectively a noop if the catalog is already present).
     //KGlobal::locale()->insertCatalog("timezones4");
 }
-*/
+
 TimeEngine::~TimeEngine()
 {
 }
