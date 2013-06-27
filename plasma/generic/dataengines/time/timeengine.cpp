@@ -40,18 +40,6 @@
 #undef timezone
 #endif
 
-QObject* TimeEngineFactory::createPlugin(const QString& name)
-{
-    qDebug() << "TimeEngineFactory::createPlugin implementation" << name;
-    //QObject *o = new QObject(); // getter is expected to take ownership
-    //o->setObjectName(name);
-
-    QVariantList args;
-    args << name;
-    Plasma::DataEngine *time_engine = new TimeEngine(0, args);
-
-    return time_engine;
-}
 
 
 TimeEngine::TimeEngine(const KPluginInfo &plugin, QObject *parent)

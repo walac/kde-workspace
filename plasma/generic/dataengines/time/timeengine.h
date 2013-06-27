@@ -23,20 +23,7 @@
 #include <kqpluginfactory.h>
 #include <Plasma/DataEngine>
 
-
-#define K_PLUGIN_HEADER(name, jsonfile) \
-class name : public QObject, public KQPluginFactory \
-{ \
-    Q_OBJECT \
-    Q_PLUGIN_METADATA(IID "org.kde.KQPluginFactory" FILE jsonfile) \
-    Q_INTERFACES(KQPluginFactory) \
-\
-    public: \
-        QObject* createPlugin(const QString &name); \
-\
-}; \
-
-
+#include <QDebug>
 
 
 
@@ -61,8 +48,6 @@ class TimeEngineFactory : public QObject, public KQPluginFactory
 
 };
 */
-
-K_PLUGIN_HEADER(TimeEngineFactory, "plasma_engine_time.json")
 
 
 /**
@@ -92,5 +77,23 @@ class TimeEngine : public Plasma::DataEngine
         void clockSkewed(); // call when system time changed and all clocks should be updated
         void tzConfigChanged();
 };
+
+K_PLUGIN_HEADER(TimeEngineFactory, TimeEngine, "plasma_engine_time.json")
+/*
+K_PLUGIN_DEFINITION(TimeEngineFactory, TimeEngine)*/
+
+// inline QObject* TimeEngineFactory::createPlugin(const QString& name)
+// {
+//     qDebug() << "TimeEngineFactory::createPlugin implementation" << name;
+//     //QObject *o = new QObject(); // getter is expected to take ownership
+//     //o->setObjectName(name);
+//
+//     QVariantList args;
+//     args << name;
+//     QObject *time_engine = new TimeEngine(0, args);
+//
+//     return time_engine;
+// }
+//
 
 #endif // TIMEENGINE_H
