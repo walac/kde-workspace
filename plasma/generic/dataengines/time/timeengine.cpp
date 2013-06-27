@@ -40,8 +40,6 @@
 #undef timezone
 #endif
 
-
-
 TimeEngine::TimeEngine(const KPluginInfo &plugin, QObject *parent)
     : Plasma::DataEngine(plugin, parent)
 {

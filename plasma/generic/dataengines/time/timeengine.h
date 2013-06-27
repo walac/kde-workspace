@@ -26,30 +26,6 @@
 #include <QDebug>
 
 
-
-// class name : public baseFactory \
-// { \
-//     public: \
-//         explicit name(const char * = 0, const char * = 0, QObject * = 0); \
-//         ~name(); \
-//     private: \
-//         void init(); \
-// };
-//
-/*
-class TimeEngineFactory : public QObject, public KQPluginFactory
-{
-    Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.kde.KQPluginFactory" FILE "plasma_engine_time.json")
-    Q_INTERFACES(KQPluginFactory)
-
-    public:
-        QObject* createPlugin(const QString &name);
-
-};
-*/
-
-
 /**
  * This engine provides the current date and time for a given
  * timezone. Optionally it can also provide solar position info.
@@ -79,21 +55,7 @@ class TimeEngine : public Plasma::DataEngine
 };
 
 K_PLUGIN_HEADER(TimeEngineFactory, TimeEngine, "plasma_engine_time.json")
-/*
-K_PLUGIN_DEFINITION(TimeEngineFactory, TimeEngine)*/
 
-// inline QObject* TimeEngineFactory::createPlugin(const QString& name)
-// {
-//     qDebug() << "TimeEngineFactory::createPlugin implementation" << name;
-//     //QObject *o = new QObject(); // getter is expected to take ownership
-//     //o->setObjectName(name);
-//
-//     QVariantList args;
-//     args << name;
-//     QObject *time_engine = new TimeEngine(0, args);
-//
-//     return time_engine;
-// }
-//
+
 
 #endif // TIMEENGINE_H
