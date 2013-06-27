@@ -20,7 +20,50 @@
 #ifndef TIMEENGINE_H
 #define TIMEENGINE_H
 
+#include <kqpluginfactory.h>
 #include <Plasma/DataEngine>
+
+
+#define K_PLUGIN_HEADER(name, jsonfile) \
+class name : public QObject, public KQPluginFactory \
+{ \
+    Q_OBJECT \
+    Q_PLUGIN_METADATA(IID "org.kde.KQPluginFactory" FILE jsonfile) \
+    Q_INTERFACES(KQPluginFactory) \
+\
+    public: \
+        QObject* createPlugin(const QString &name); \
+\
+}; \
+
+
+
+
+
+// class name : public baseFactory \
+// { \
+//     public: \
+//         explicit name(const char * = 0, const char * = 0, QObject * = 0); \
+//         ~name(); \
+//     private: \
+//         void init(); \
+// };
+//
+/*
+class TimeEngineFactory : public QObject, public KQPluginFactory
+{
+    Q_OBJECT
+    Q_PLUGIN_METADATA(IID "org.kde.KQPluginFactory" FILE "plasma_engine_time.json")
+    Q_INTERFACES(KQPluginFactory)
+
+    public:
+        QObject* createPlugin(const QString &name);
+
+};
+*/
+
+K_PLUGIN_HEADER(TimeEngineFactory, "plasma_engine_time.json")
+
 
 /**
  * This engine provides the current date and time for a given

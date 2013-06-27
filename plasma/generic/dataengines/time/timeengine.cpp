@@ -25,6 +25,7 @@
 #include <QDBusConnection>
 #include <QStringList>
 #include <QTime>
+#include <QVariantList>
 
 #include <KGlobal>
 #include <KLocale>
@@ -38,6 +39,20 @@
 #ifdef timezone
 #undef timezone
 #endif
+
+QObject* TimeEngineFactory::createPlugin(const QString& name)
+{
+    qDebug() << "TimeEngineFactory::createPlugin implementation" << name;
+    //QObject *o = new QObject(); // getter is expected to take ownership
+    //o->setObjectName(name);
+
+    QVariantList args;
+    args << name;
+    Plasma::DataEngine *time_engine = new TimeEngine(0, args);
+
+    return time_engine;
+}
+
 
 TimeEngine::TimeEngine(const KPluginInfo &plugin, QObject *parent)
     : Plasma::DataEngine(plugin, parent)
@@ -118,6 +133,6 @@ bool TimeEngine::updateSourceEvent(const QString &tz)
     return false;
 }
 
-K_EXPORT_PLASMA_DATAENGINE(time, TimeEngine)
+//K_EXPORT_PLASMA_DATAENGINE(time, TimeEngine)
 
 #include "timeengine.moc"
