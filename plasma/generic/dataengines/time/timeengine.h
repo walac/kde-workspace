@@ -20,7 +20,7 @@
 #ifndef TIMEENGINE_H
 #define TIMEENGINE_H
 
-#include <kqpluginfactory.h>
+#include <kpluginfactory.h>
 #include <Plasma/DataEngine>
 
 #include <QDebug>
