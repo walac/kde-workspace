@@ -28,7 +28,7 @@ Item {
     id: mainWindow
     property int minimumHeight:40
     property int minimumWidth: 40
-    property alias timeData: dataSource.tdata
+    property alias timeData: dataSource.data
     property string tz: "Europe/Amsterdam"
     property string textColor
     property string textFont
@@ -83,20 +83,20 @@ Item {
         connectedSources: [tz]
         interval: 2000
 
-        onDataChanged: {
-            print("data: " + data);
-//             print("data: " + tdata.valueOf());
-            //timeData = data;
-            print("data: " + timeData[tz]);
-
-            for (var d in timeData[tz]) {
-                //print("  d data[" + d +"] = " + timeData[tz][d] + "    ")
-                for (var e in d) {
-                    //print("     e data[" + e +"] = " + d[e])
-                }
-            }
-            print( " data" + timeData[tz]["Time"]);
-        }
+//         onDataChanged: {
+//             print("data: " + data);
+// //             print("data: " + tdata.valueOf());
+//             //timeData = data;
+//             print("data: " + timeData[tz]);
+//
+//             for (var d in timeData[tz]) {
+//                 print("  d data[" + d +"] = " + timeData[tz][d] + "    ")
+//                 for (var e in d) {
+//                     print("     e data[" + e +"] = " + d[e])
+//                 }
+//             }
+//             print( " data" + timeData[tz]["Time"]);
+//         }
     }
     
     Locale {
