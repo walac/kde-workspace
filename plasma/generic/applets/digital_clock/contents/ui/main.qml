@@ -18,20 +18,21 @@
     License along with this plasmoid. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import QtQuick 1.1
-import Qt 4.7
-import org.kde.plasma.core 0.1 as PlasmaCore
-import org.kde.plasma.components 0.1 as Components
-import org.kde.locale 0.1
-
+import QtQuick 2.0
+import org.kde.plasma.core 2.0 as PlasmaCore
+import org.kde.plasma.components 2.0 as Components
+import org.kde.locale 2.0
 
 Item {
 
     id: mainWindow
-    property int minimumHeight:100
-    property int minimumWidth: 200
+    property int minimumHeight:40
+    property int minimumWidth: 40
+    property alias timeData: dataSource.tdata
+    property string tz: "Europe/Amsterdam"
     property string textColor
     property string textFont
+    property int theight: (width / height > 4) ? height/2 : width/5
     
     Component.onCompleted: {
         plasmoid.setBackgroundHints( 0 )
@@ -48,47 +49,54 @@ Item {
     
     function setTimeFormat()
     {
+        return;
         timeFormat = plasmoid.readConfig( "timeFormat" )
         if( timeFormat == 12 ){
-            timeString = (Qt.formatTime( dataSource.data["Local"]["Time"],"h:mmap" )).toString().slice(0,-2)
+            timeString = (Qt.formatTime( timeData[tz]["Time"],"h:mmap" )).toString().slice(0,-2)
         }
         else
-            timeString = (Qt.formatTime( dataSource.data["Local"]["Time"],"hh:mm" ))
+            timeString = (Qt.formatTime( timeData[tz]["Time"],"hh:mm" ))
     }
   
      Components.Label  {
         id: time
-        text : (Qt.formatTime( dataSource.data["Local"]["Time"],"h:mmap" )).toString().slice(0,-2)
+        text : (Qt.formatTime( timeData[tz]["Time"],"hh:mm" ))
+        font.pointSize: theight
         anchors {
-            top: parent.top;
-            left: parent.left;
+            centerIn: parent
         }
     }
-    
-    Components.Label  {
-        id: ap
-        opacity: 0.5
-        text : Qt.formatTime( dataSource.data["Local"]["Time"],"ap" )
-        anchors {
-            top: parent.top;
-            left: time.right;
-        }
-    }
-    
+
     Components.Label  {
         id: date
-        text : Qt.formatDate( dataSource.data["Local"]["Date"],"dddd, MMM d" )
+        text : timeData[tz]["Timezone City"] + ", " + Qt.formatDate( timeData[tz]["Date"],"dddd, MMM d" )
         anchors {
             top: time.bottom;
-            left: parent.left;
+            //topMargin: font.pixelSize
+            horizontalCenter: time.horizontalCenter
         }
     }
     
     PlasmaCore.DataSource {
         id: dataSource
         engine: "time"
-        connectedSources: ["Local"]
-        interval: 500
+        connectedSources: [tz]
+        interval: 2000
+
+        onDataChanged: {
+            print("data: " + data);
+//             print("data: " + tdata.valueOf());
+            //timeData = data;
+            print("data: " + timeData[tz]);
+
+            for (var d in timeData[tz]) {
+                //print("  d data[" + d +"] = " + timeData[tz][d] + "    ")
+                for (var e in d) {
+                    //print("     e data[" + e +"] = " + d[e])
+                }
+            }
+            print( " data" + timeData[tz]["Time"]);
+        }
     }
     
     Locale {
