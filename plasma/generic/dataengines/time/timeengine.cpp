@@ -52,10 +52,9 @@ TimeEngine::TimeEngine(const KPluginInfo &plugin, QObject *parent)
 }
 
 TimeEngine::TimeEngine(QObject* parent, const QVariantList &args)
-    : Plasma::DataEngine(KPluginInfo(), parent)
+    : Plasma::DataEngine(parent, args)
 {
     setMinimumPollingInterval(333);
-    qDebug() << "wrong constructor for timeengine :(";
     // To have translated timezone names
     // (effectively a noop if the catalog is already present).
     //KGlobal::locale()->insertCatalog("timezones4");
