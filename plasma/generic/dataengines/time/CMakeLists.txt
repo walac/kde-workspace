@@ -5,11 +5,16 @@ set(time_engine_SRCS
 )
 
 kde4_add_plugin(plasma_engine_time ${time_engine_SRCS})
+
 #add_library(plasma_engine_time SHARED ${time_engine_SRCS})
 target_link_libraries(plasma_engine_time
     ${KDE4_KDECORE_LIBS}
+    ${KDE4_SOLID_LIBS}
     ${Plasma_LIBRARIES}
 )
+
+#target_link_libraries(plasma_engine_time ${KDE4_KDECORE_LIBS} ${KDE4_PLASMA_LIBS} ${KDE4_SOLID_LIBS})
+
 
 #install(TARGETS plasma_engine_time DESTINATION ${PLUGIN_INSTALL_DIR}/kplugins)
 install(TARGETS plasma_engine_time DESTINATION ${PLUGIN_INSTALL_DIR})

@@ -1,3 +1,4 @@
+
 #add_subdirectory(applicationjobs)
 #add_subdirectory(activities)
 #add_subdirectory(apps)
@@ -17,6 +18,7 @@
 #add_subdirectory(places)
 #add_subdirectory(powermanagement)
 #add_subdirectory(soliddevice)
+
 add_subdirectory(time)
 #add_subdirectory(weather)
 #add_subdirectory(statusnotifieritem)
