@@ -27,13 +27,13 @@
 #include <KDebug>
 #include <KGlobalSettings>
 
-#include <QtGui/QWidget>
-#include <QtGui/QPainter>
+#include <QWidget>
+#include <QPainter>
 
 #include <math.h>
 
-#ifdef Q_WS_X11
-#include <QtGui/QX11Info>
+#if HAVE_X11
+#include <QX11Info>
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 #include <fixx11h.h>
@@ -51,11 +51,10 @@ namespace Oxygen
     // Since the ctor order causes a SEGV if we try to pass in a KConfig here from
     // a KComponentData constructed in the OxygenStyleHelper ctor, we'll just keep
     // one here, even though the window decoration doesn't really need it.
-    Helper::Helper( const QByteArray& componentName ):
-        _componentData( componentName, 0, KComponentData::SkipMainComponentRegistration )
+    Helper::Helper( void )
     {
-        _config = _componentData.config();
-        _contrast = KGlobalSettings::contrastF( _config );
+        _config = KSharedConfig::openConfig( QStringLiteral( "oxygenrc" ) );
+        _contrast = KColorScheme::contrastF( _config );
 
         // background contrast is calculated so that it is 0.9
         // when KGlobalSettings contrast value of 0.7
@@ -63,7 +62,7 @@ namespace Oxygen
 
         _backgroundCache.setMaxCost( 64 );
 
-        #ifdef Q_WS_X11
+        #if HAVE_X11
 
         // create background atoms
         _backgroundGradientAtom = XInternAtom( QX11Info::display(), "_KDE_OXYGEN_BACKGROUND_GRADIENT", False);
@@ -82,12 +81,12 @@ namespace Oxygen
     {
 
         _config->reparseConfiguration();
-        _contrast = KGlobalSettings::contrastF( _config );
+        _contrast = KColorScheme::contrastF( _config );
         _bgcontrast = qMin( 1.0, 0.9*_contrast/0.7 );
 
-        _viewFocusBrush = KStatefulBrush( KColorScheme::View, KColorScheme::FocusColor, config() );
-        _viewHoverBrush = KStatefulBrush( KColorScheme::View, KColorScheme::HoverColor, config() );
-        _viewNegativeTextBrush = KStatefulBrush( KColorScheme::View, KColorScheme::NegativeText, config() );
+        _viewFocusBrush = KStatefulBrush( KColorScheme::View, KColorScheme::FocusColor, _config );
+        _viewHoverBrush = KStatefulBrush( KColorScheme::View, KColorScheme::HoverColor, _config );
+        _viewNegativeTextBrush = KStatefulBrush( KColorScheme::View, KColorScheme::NegativeText, _config );
 
     }
 
@@ -898,7 +897,7 @@ namespace Oxygen
     void Helper::setHasBackgroundGradient( WId id, bool value ) const
     {
 
-        #ifdef Q_WS_X11
+        #if HAVE_X11
         setHasHint( id, _backgroundGradientAtom, value );
         #else
         Q_UNUSED( id );
@@ -911,7 +910,7 @@ namespace Oxygen
     bool Helper::hasBackgroundGradient( WId id ) const
     {
 
-        #ifdef Q_WS_X11
+        #if HAVE_X11
         return hasHint( id, _backgroundGradientAtom );
         #else
         Q_UNUSED( id );
@@ -923,7 +922,7 @@ namespace Oxygen
     void Helper::setHasBackgroundPixmap( WId id, bool value ) const
     {
 
-        #ifdef Q_WS_X11
+        #if HAVE_X11
         setHasHint( id, _backgroundPixmapAtom, value );
         #else
         Q_UNUSED( id );
@@ -936,7 +935,7 @@ namespace Oxygen
     bool Helper::hasBackgroundPixmap( WId id ) const
     {
 
-        #ifdef Q_WS_X11
+        #if HAVE_X11
         return hasHint( id, _backgroundPixmapAtom );
         #else
         Q_UNUSED( id );
@@ -1055,7 +1054,7 @@ namespace Oxygen
 
     }
 
-    #ifdef Q_WS_X11
+    #if HAVE_X11
 
     //____________________________________________________________________
     void Helper::setHasHint( WId id, Atom atom, bool value ) const

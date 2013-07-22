@@ -1,5 +1,3 @@
-include_directories( ${KDE4_KDEUI_INCLUDES} )
-
 
 ########### next target ###############
 set( oxygen_demo_SOURCES
@@ -14,9 +12,10 @@ set( oxygen_demo_SOURCES
     oxygensimulator.cpp
     oxygensliderdemowidget.cpp
     oxygentabdemowidget.cpp
+    oxygentabwidget.cpp
     main.cpp)
 
-kde4_add_ui_files(oxygen_demo_SOURCES
+set( oxygen_demo_FORMS
     ui/oxygenbenchmarkwidget.ui
     ui/oxygenbuttondemowidget.ui
     ui/oxygenframedemowidget.ui
@@ -27,13 +26,26 @@ kde4_add_ui_files(oxygen_demo_SOURCES
     ui/oxygentabdemowidget.ui
 )
 
-kde4_add_executable( oxygen-demo ${oxygen_demo_SOURCES} )
+qt5_wrap_ui(oxygen_demo_FORMS_HEADERS ${oxygen_demo_FORMS})
 
-target_link_libraries( oxygen-demo
-    ${KDE4_KDEUI_LIBS}
-    ${QT_QTCORE_LIBRARY}
-    ${QT_QTTEST_LIBRARY}
-    ${QT_QTGUI_LIBRARY})
+add_executable( oxygen-demo
+    ${oxygen_demo_SOURCES}
+    ${oxygen_demo_FORMS_HEADERS}
+ )
+
+qt5_use_modules( oxygen-demo
+    Core
+    Gui
+    Widgets
+)
+
+target_link_libraries(oxygen-demo
+    ${KCompletion_LIBRARIES}
+    ${KGuiAddons_LIBRARIES}
+    ${KWidgets_LIBRARIES}
+    ${KWidgetsAddons_LIBRARIES}
+    ${KI18n_LIBRARIES}
+)
 
 ########### install files ###############
 install (TARGETS oxygen-demo ${INSTALL_TARGETS_DEFAULT_ARGS} )

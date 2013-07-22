@@ -1,13 +1,23 @@
-
 project(kstyle-oxygen)
 
-add_subdirectory( config )
-add_subdirectory( demo )
+################# X11 #################
+add_definitions( -DHAVE_X11=${X11_FOUND} )
 
-include_directories (animations debug transitions ${KDEBASE_WORKSPACE_SOURCE_DIR}/libs/oxygen)
+
+if(X11_FOUND)
+    # FIXME: remove when upstream CMakeLists is fixed
+    find_package(XCB REQUIRED)
+    find_package(X11_XCB)
+endif()
+
+################# includes #################
+include_directories(
+    animations
+    debug
+    transitions
+)
 
 ########### next target ###############
-
 set(oxygen_PART_SRCS
     animations/oxygenanimations.cpp
     animations/oxygenanimationdata.cpp
@@ -64,18 +74,42 @@ set(oxygen_PART_SRCS
     oxygenwindowmanager.cpp
 )
 
-kde4_add_kcfg_files(oxygen_PART_SRCS oxygenstyleconfigdata.kcfgc)
+kconfig_add_kcfg_files(oxygen_PART_SRCS oxygenstyleconfigdata.kcfgc)
 
-kde4_add_plugin(oxygen ${oxygen_PART_SRCS})
+add_library(oxygen MODULE ${oxygen_PART_SRCS})
 
-target_link_libraries(oxygen  ${KDE4_KDEUI_LIBS} ${KDE4_KIO_LIBS} oxygenstyle)
+qt5_use_modules( oxygen
+    Core
+    Gui
+    Widgets
+    DBus
+    Svg )
 
-if ( X11_FOUND )
-   target_link_libraries(oxygen ${X11_LIBRARIES})
-endif( X11_FOUND )
+target_link_libraries(oxygen
+    ${KConfig_LIBRARIES}
+    ${KGuiAddons_LIBRARIES}
+    ${KWidgets_LIBRARIES}
+    ${KIconThemes_LIBRARIES}
+    ${KWindowSystem_LIBRARIES}
+)
 
-install(TARGETS oxygen  DESTINATION ${PLUGIN_INSTALL_DIR}/plugins/styles/ )
+target_link_libraries(oxygen
+    ${XCB_XCB_LIBRARIES}
+    ${X11_XCB_LIBRARIES}
+)
+
+target_link_libraries(oxygen oxygenstyle)
+
+if(X11_FOUND)
+  target_link_libraries(oxygen ${X11_LIBRARIES})
+  qt5_use_modules(oxygen X11Extras)
+endif(X11_FOUND)
+
+install(TARGETS oxygen DESTINATION ${QT_PLUGIN_INSTALL_DIR}/styles/ )
 
 ########### install files ###############
-
 install( FILES oxygen.themerc  DESTINATION  ${DATA_INSTALL_DIR}/kstyle/themes )
+
+########### subdirectories ###############
+add_subdirectory( config )
+add_subdirectory( demo )

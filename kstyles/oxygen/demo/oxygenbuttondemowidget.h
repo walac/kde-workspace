@@ -27,13 +27,13 @@
 // IN THE SOFTWARE.
 //////////////////////////////////////////////////////////////////////////////
 
-#include <QtGui/QWidget>
-#include <QtGui/QToolButton>
-#include <QtCore/QList>
-#include <KToolBar>
-
 #include "oxygendemowidget.h"
 #include "ui_oxygenbuttondemowidget.h"
+
+#include <QWidget>
+#include <QList>
+#include <QToolBar>
+#include <QToolButton>
 
 namespace Oxygen
 {
@@ -51,11 +51,11 @@ namespace Oxygen
         virtual ~ButtonDemoWidget( void )
         {}
 
-        public slots:
+        public Q_SLOTS:
 
         void benchmark( void );
 
-        protected slots:
+        protected Q_SLOTS:
 
         //! change text position in tool buttons
         void textPosition( int );
@@ -74,7 +74,7 @@ namespace Oxygen
         private:
 
         Ui_ButtonDemoWidget ui;
-        KToolBar* _toolBar;
+        QToolBar* _toolBar;
         QList<QPushButton*> _pushButtons;
         QList<QToolButton*> _toolButtons;
     };

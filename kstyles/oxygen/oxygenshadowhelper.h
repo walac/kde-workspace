@@ -29,11 +29,12 @@
 
 #include "oxygentileset.h"
 
-#include <QtCore/QObject>
-#include <QtCore/QPointer>
-#include <QtCore/QMap>
+#include <QObject>
+#include <QPointer>
+#include <QMap>
 
-#ifdef Q_WS_X11
+#if HAVE_X11
+#include <xcb/xcb.h>
 #include <X11/Xdefs.h>
 #endif
 
@@ -78,7 +79,7 @@ namespace Oxygen
         //! event filter
         virtual bool eventFilter( QObject*, QEvent* );
 
-        protected slots:
+        protected Q_SLOTS:
 
         //! unregister widget
         void objectDeleted( QObject* );
@@ -112,7 +113,7 @@ namespace Oxygen
         const QVector<Qt::HANDLE>& createPixmapHandles( bool isDockWidget );
 
         // create pixmap handle from pixmap
-        Qt::HANDLE createPixmap( const QPixmap& ) const;
+        Qt::HANDLE createPixmap( const QPixmap& );
 
         //! install shadow X11 property on given widget
         /*!
@@ -153,7 +154,14 @@ namespace Oxygen
         //! shadow size
         int _size;
 
-        #ifdef Q_WS_X11
+        #if HAVE_X11
+        
+        //! xcb connection
+        xcb_connection_t* _connection;
+
+        //! graphical context
+        xcb_gcontext_t _gc;
+        
         //! shadow atom
         Atom _atom;
         #endif

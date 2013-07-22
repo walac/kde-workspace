@@ -27,13 +27,15 @@
 // IN THE SOFTWARE.
 //////////////////////////////////////////////////////////////////////////////
 
-#include <KDialog>
+#include <QDialog>
+#include <QDialogButtonBox>
+
 #include <KPageWidget>
 
 namespace Oxygen
 {
 
-    class ConfigDialog: public KDialog
+    class ConfigDialog: public QDialog
     {
         Q_OBJECT
 
@@ -46,7 +48,7 @@ namespace Oxygen
         virtual ~ConfigDialog( void )
         {}
 
-        signals:
+        Q_SIGNALS:
 
         //! save local changes
         void pluginSave( void );
@@ -54,12 +56,12 @@ namespace Oxygen
         //! expert mode
         void pluginToggleExpertMode( bool );
 
-        public slots:
+        public Q_SLOTS:
 
         //! save local changes
         virtual void save( void );
 
-        protected slots:
+        protected Q_SLOTS:
 
         // update decoration changed state
         void updateStyleChanged( bool state = true )
@@ -87,8 +89,11 @@ namespace Oxygen
         //! load decoration config widget from plugin
         KPageWidgetItem* loadDecorationConfig( void );
 
+        //! button box
+        QDialogButtonBox* _buttonBox;
+
         //! central widget
-        KPageWidget* pageWidget_;
+        KPageWidget* _pageWidget;
 
         //! style plugin widget
         QObject *_stylePluginObject;

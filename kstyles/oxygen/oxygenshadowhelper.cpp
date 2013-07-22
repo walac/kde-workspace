@@ -29,16 +29,17 @@
 #include "oxygenshadowcache.h"
 #include "oxygenstylehelper.h"
 
-#include <QtGui/QDockWidget>
-#include <QtGui/QMenu>
-#include <QtGui/QPainter>
-#include <QtGui/QToolBar>
-#include <QtCore/QTextStream>
-#include <QtCore/QEvent>
+#include <QDockWidget>
+#include <QMenu>
+#include <QPainter>
+#include <QToolBar>
+#include <QTextStream>
+#include <QEvent>
 
-#ifdef Q_WS_X11
-#include <QtGui/QX11Info>
+#if HAVE_X11
+#include <QX11Info>
 #include <X11/Xlib.h>
+#include <X11/Xlib-xcb.h>
 #include <X11/Xatom.h>
 #endif
 
@@ -55,8 +56,10 @@ namespace Oxygen
         _helper( helper ),
         _shadowCache( new ShadowCache( helper ) ),
         _size( 0 )
-        #ifdef Q_WS_X11
-        ,_atom( None )
+        #if HAVE_X11
+        ,_connection( 0x0 ),
+        _gc( 0x0 ),
+        _atom( None )
         #endif
     {}
 
@@ -64,9 +67,9 @@ namespace Oxygen
     ShadowHelper::~ShadowHelper( void )
     {
 
-        #ifdef Q_WS_X11
-        foreach( const Qt::HANDLE& value, _pixmaps  ) XFreePixmap( QX11Info::display(), value );
-        foreach( const Qt::HANDLE& value, _dockPixmaps  ) XFreePixmap( QX11Info::display(), value );
+        #if HAVE_X11
+        foreach( const Qt::HANDLE& value, _pixmaps  ) XFreePixmap( QX11Info::display(), reinterpret_cast<Pixmap>( value ) );
+        foreach( const Qt::HANDLE& value, _dockPixmaps  ) XFreePixmap( QX11Info::display(), reinterpret_cast<Pixmap>( value ) );
         #endif
 
         delete _shadowCache;
@@ -76,10 +79,10 @@ namespace Oxygen
     //______________________________________________
     void ShadowHelper::reset( void )
     {
-        #ifdef Q_WS_X11
+        #if HAVE_X11
         // round pixmaps
-        foreach( const Qt::HANDLE& value, _pixmaps  ) XFreePixmap( QX11Info::display(), value );
-        foreach( const Qt::HANDLE& value, _dockPixmaps  ) XFreePixmap( QX11Info::display(), value );
+        foreach( const Qt::HANDLE& value, _pixmaps  ) XFreePixmap( QX11Info::display(), reinterpret_cast<Pixmap>( value ) );
+        foreach( const Qt::HANDLE& value, _dockPixmaps  ) XFreePixmap( QX11Info::display(), reinterpret_cast<Pixmap>( value ) );
         #endif
 
         _pixmaps.clear();
@@ -247,7 +250,7 @@ namespace Oxygen
         */
 
         // create atom
-        #ifdef Q_WS_X11
+        #if HAVE_X11
         if( !_atom ) _atom = XInternAtom( QX11Info::display(), netWMShadowAtomName, False);
         #endif
 
@@ -291,7 +294,7 @@ namespace Oxygen
     }
 
     //______________________________________________
-    Qt::HANDLE ShadowHelper::createPixmap( const QPixmap& source ) const
+    Qt::HANDLE ShadowHelper::createPixmap( const QPixmap& source )
     {
 
         // do nothing for invalid pixmaps
@@ -303,25 +306,45 @@ namespace Oxygen
         explicitly and draw the source pixmap on it.
         */
 
-        #ifdef Q_WS_X11
+        #if HAVE_X11
+        
+        // check connection 
+        if( !_connection ) _connection = XGetXCBConnection( QX11Info::display() );
+        
         const int width( source.width() );
         const int height( source.height() );
 
         // create X11 pixmap
         Pixmap pixmap = XCreatePixmap( QX11Info::display(), QX11Info::appRootWindow(), width, height, 32 );
 
-        // create explicitly shared QPixmap from it
-        QPixmap dest( QPixmap::fromX11Pixmap( pixmap, QPixmap::ExplicitlyShared ) );
-
-        // create surface for pixmap
+        // check gc
+        if( !_gc ) 
         {
-            QPainter painter( &dest );
-            painter.setCompositionMode( QPainter::CompositionMode_Source );
-            painter.drawPixmap( 0, 0, source );
+            _gc = xcb_generate_id( _connection );
+            xcb_create_gc( _connection, _gc, pixmap, 0, 0x0 );
         }
-
-
-        return pixmap;
+        
+//         // create explicitly shared QPixmap from it
+//         QPixmap dest( QPixmap::fromX11Pixmap( pixmap, QPixmap::ExplicitlyShared ) );
+// 
+//         // create surface for pixmap
+//         {
+//             QPainter painter( &dest );
+//             painter.setCompositionMode( QPainter::CompositionMode_Source );
+//             painter.drawPixmap( 0, 0, source );
+//         }
+// 
+// 
+//         return pixmap;
+        QImage image( source.toImage() );
+        xcb_put_image(
+            _connection, XCB_IMAGE_FORMAT_Z_PIXMAP, pixmap, _gc,
+            image.width(), image.height(), 0, 0,
+            0, 32, 
+            image.byteCount(), image.constBits());
+       
+        return (Qt::HANDLE)pixmap;
+        
         #else
         return 0;
         #endif
@@ -335,7 +358,7 @@ namespace Oxygen
         // check widget and shadow
         if( !widget ) return false;
 
-        #ifdef Q_WS_X11
+        #if HAVE_X11
         #ifndef QT_NO_XRENDER
 
         // TODO: also check for NET_WM_SUPPORTED atom, before installing shadow
@@ -356,7 +379,7 @@ namespace Oxygen
         // add pixmap handles
         QVector<unsigned long> data;
         foreach( const Qt::HANDLE& value, pixmaps )
-        { data.push_back( value ); }
+        { data.push_back( reinterpret_cast<unsigned long>(value) ); }
 
         // add padding
         /*
@@ -392,9 +415,11 @@ namespace Oxygen
     void ShadowHelper::uninstallX11Shadows( QWidget* widget ) const
     {
 
-        #ifdef Q_WS_X11
+        #if HAVE_X11
         if( !( widget && widget->testAttribute(Qt::WA_WState_Created) ) ) return;
         XDeleteProperty(QX11Info::display(), widget->winId(), _atom);
+        #else
+        Q_UNUSED( widget )
         #endif
 
     }

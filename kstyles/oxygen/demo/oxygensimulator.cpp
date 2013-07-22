@@ -30,24 +30,24 @@
 #include "oxygensimulator.moc"
 
 
-#include <QtGui/QAbstractItemView>
-#include <QtGui/QApplication>
-#include <QtGui/QCheckBox>
-#include <QtGui/QComboBox>
-#include <QtGui/QCursor>
-#include <QtGui/QFocusEvent>
-#include <QtGui/QHoverEvent>
-#include <QtGui/QMdiSubWindow>
-#include <QtGui/QMenu>
-#include <QtGui/QMouseEvent>
-#include <QtGui/QPushButton>
-#include <QtGui/QRadioButton>
-#include <QtGui/QScrollBar>
-#include <QtGui/QSlider>
-#include <QtGui/QStyle>
-#include <QtGui/QStyleOptionComboBox>
-#include <QtGui/QStyleOptionSlider>
-#include <QtGui/QToolButton>
+#include <QAbstractItemView>
+#include <QApplication>
+#include <QCheckBox>
+#include <QComboBox>
+#include <QCursor>
+#include <QFocusEvent>
+#include <QHoverEvent>
+#include <QMdiSubWindow>
+#include <QMenu>
+#include <QMouseEvent>
+#include <QPushButton>
+#include <QRadioButton>
+#include <QScrollBar>
+#include <QSlider>
+#include <QStyle>
+#include <QStyleOptionComboBox>
+#include <QStyleOptionSlider>
+#include <QToolButton>
 
 #ifdef Q_OS_WIN
 /* need windows.h include for Sleep function*/
@@ -602,8 +602,8 @@ namespace Oxygen
 
                 enter( receiver, receiver->rect().center(), event._delay );
                 setFocus( receiver );
-                postKeyEvent( receiver, QEvent::KeyPress, Qt::Key_A, "a", Qt::ControlModifier );
-                postKeyEvent( receiver, QEvent::KeyRelease, Qt::Key_A, "a", Qt::ControlModifier );
+                postKeyEvent( receiver, QEvent::KeyPress, Qt::Key_A, QStringLiteral( "a" ), Qt::ControlModifier );
+                postKeyEvent( receiver, QEvent::KeyRelease, Qt::Key_A, QStringLiteral( "a" ), Qt::ControlModifier );
                 postDelay( 20 );
                 postKeyClickEvent( receiver, Qt::Key_Backspace, QString() );
 

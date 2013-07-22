@@ -23,12 +23,12 @@
 #include <KColorUtils>
 #include <KColorScheme>
 
-#include <QtGui/QPainter>
-#include <QtGui/QLinearGradient>
+#include <QPainter>
+#include <QLinearGradient>
 
 #include <math.h>
 
-#ifdef Q_WS_X11
+#if HAVE_X11
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 #endif
@@ -37,12 +37,10 @@ namespace Oxygen
 {
 
     //______________________________________________________________________________
-    StyleHelper::StyleHelper( const QByteArray &componentName ):
-        Helper( componentName ),
-        _debugArea( KDebug::registerArea( "Oxygen ( style )" ) )
+    StyleHelper::StyleHelper( void )
     {
 
-        #ifdef Q_WS_X11
+        #if HAVE_X11
         // get display
         Display *display = QX11Info::display();
 
@@ -648,7 +646,7 @@ namespace Oxygen
     //________________________________________________________________________________________________________
     bool StyleHelper::compositingActive( void ) const
     {
-        #ifdef Q_WS_X11
+        #if HAVE_X11
         // direct call to X
         return XGetSelectionOwner( QX11Info::display(), _compositingManagerAtom ) != None;
         #else

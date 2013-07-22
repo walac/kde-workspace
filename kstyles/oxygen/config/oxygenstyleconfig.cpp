@@ -32,16 +32,14 @@ DEALINGS IN THE SOFTWARE.
 #include "oxygenanimationconfigwidget.h"
 #include "oxygenstyleconfigdata.h"
 
-#include <QtCore/QTextStream>
-#include <QtDBus/QDBusMessage>
-#include <QtDBus/QDBusConnection>
+#include <QTextStream>
+#include <QDBusMessage>
+#include <QDBusConnection>
 
-#include <KGlobal>
-#include <KLocale>
+#include <KLocalizedString>
 #include <KSharedConfig>
 #include <KConfigGroup>
 #include <kdemacros.h>
-#include <KDialog>
 
 #define SCROLLBAR_DEFAULT_WIDTH 15
 #define SCROLLBAR_MINIMUM_WIDTH 10
@@ -51,7 +49,7 @@ extern "C"
 {
     KDE_EXPORT QWidget* allocate_kstyle_config(QWidget* parent)
     {
-        KGlobal::locale()->insertCatalog("kstyle_config");
+        KLocalizedString::insertCatalog( QStringLiteral( "kstyle_config" ) );
         return new Oxygen::StyleConfig(parent);
     }
 }
@@ -65,7 +63,7 @@ namespace Oxygen
         _expertMode( false ),
         _animationConfigWidget(0)
     {
-        KGlobal::locale()->insertCatalog("kstyle_config");
+        KLocalizedString::insertCatalog( QStringLiteral( "kstyle_config" ) );
 
         setupUi(this);
 
@@ -73,7 +71,7 @@ namespace Oxygen
         connect( _windowDragMode, SIGNAL(currentIndexChanged(int)), SLOT(windowDragModeChanged(int)) );
         connect( _expertModeButton, SIGNAL(pressed()), SLOT(toggleExpertModeInternal()) );
 
-        _expertModeButton->setIcon( KIcon("configure") );
+        _expertModeButton->setIcon( QIcon::fromTheme( QStringLiteral( "configure" ) ) );
 
         // toggle expert mode
         toggleExpertModeInternal( false );
@@ -150,7 +148,7 @@ namespace Oxygen
         StyleConfigData::self()->writeConfig();
 
         // emit dbus signal
-        QDBusMessage message( QDBusMessage::createSignal("/OxygenStyle",  "org.kde.Oxygen.Style", "reparseConfiguration") );
+        QDBusMessage message( QDBusMessage::createSignal( QStringLiteral( "/OxygenStyle" ),  QStringLiteral( "org.kde.Oxygen.Style" ), QStringLiteral( "reparseConfiguration" ) ) );
         QDBusConnection::sessionBus().send(message);
 
     }

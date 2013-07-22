@@ -26,10 +26,9 @@
 
 #include "oxygentabdemowidget.h"
 #include "oxygentabdemowidget.moc"
-#include "oxygentabwidget.moc"
 
-#include <QtGui/QToolButton>
-#include <KIcon>
+#include <QToolButton>
+#include <QIcon>
 
 namespace Oxygen
 {
@@ -48,10 +47,10 @@ namespace Oxygen
         connect( ui.tabBarVisibilityCheckBox, SIGNAL(toggled(bool)), ui.tabWidget, SLOT(toggleTabBarVisibility(bool)) );
         ui.textPositionComboBox->setCurrentIndex( 1 );
 
-        _left->setIcon( KIcon( "tab-new" ) );
+        _left->setIcon( QIcon::fromTheme( QStringLiteral( "tab-new" ) ) );
         _left->setVisible( false );
 
-        _right->setIcon( KIcon( "tab-close" ) );
+        _right->setIcon( QIcon::fromTheme( QStringLiteral( "tab-close" ) ) );
         _right->setVisible( false );
 
     }

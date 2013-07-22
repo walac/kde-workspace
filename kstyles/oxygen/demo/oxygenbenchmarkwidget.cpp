@@ -27,8 +27,8 @@
 #include "oxygenbenchmarkwidget.h"
 #include "oxygenbenchmarkwidget.moc"
 
-#include <KIcon>
-#include <QtGui/QAbstractItemView>
+#include <QIcon>
+#include <QAbstractItemView>
 
 namespace Oxygen
 {
@@ -40,7 +40,7 @@ namespace Oxygen
 
         // setup ui
         ui.setupUi( this );
-        ui.runButton->setIcon( KIcon( "system-run" ) );
+        ui.runButton->setIcon( QIcon::fromTheme( QStringLiteral( "system-run" ) ) );
         ui.grabMouseCheckBox->setChecked( Simulator::grabMouse() );
         connect( ui.grabMouseCheckBox, SIGNAL(toggled(bool)), SLOT(updateGrabMouse(bool)) );
         connect( ui.runButton, SIGNAL(clicked()), SLOT(run()) );

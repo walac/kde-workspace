@@ -30,10 +30,9 @@
 
 #include "oxygenutil.h"
 
-#include <KGlobal>
-#include <KLocale>
-#include <QtGui/QLabel>
-#include <QtGui/QLayout>
+#include <KLocalizedString>
+#include <QLabel>
+#include <QLayout>
 
 namespace Oxygen
 {
@@ -46,7 +45,7 @@ namespace Oxygen
         _changed( false )
     {
 
-        KGlobal::locale()->insertCatalog("liboxygenstyleconfig");
+        KLocalizedString::insertCatalog( QStringLiteral("liboxygenstyleconfig") );
 
         setCheckable( true );
         ui->setupUi( this );

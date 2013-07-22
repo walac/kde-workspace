@@ -26,16 +26,15 @@
 #include "oxygentileset.h"
 
 #include <KSharedConfig>
-#include <KComponentData>
 #include <KColorScheme>
 
-#include <QtGui/QColor>
-#include <QtGui/QPixmap>
-#include <QtGui/QWidget>
-#include <QtGui/QLinearGradient>
-#include <QtCore/QCache>
+#include <QColor>
+#include <QPixmap>
+#include <QWidget>
+#include <QLinearGradient>
+#include <QCache>
 
-#ifdef Q_WS_X11
+#if HAVE_X11
 #include <X11/Xdefs.h>
 #endif
 
@@ -154,7 +153,7 @@ namespace Oxygen
         public:
 
         //! constructor
-        explicit Helper( const QByteArray& componentName );
+        explicit Helper( void );
 
         //! destructor
         virtual ~Helper()
@@ -390,7 +389,6 @@ namespace Oxygen
         KStatefulBrush _viewNegativeTextBrush;
         //@}
 
-        KComponentData _componentData;
         KSharedConfigPtr _config;
         qreal _bgcontrast;
 
@@ -420,7 +418,7 @@ namespace Oxygen
         //! background pixmap offsets
         QPoint _backgroundPixmapOffset;
 
-        #ifdef Q_WS_X11
+        #if HAVE_X11
 
         //! set value for given hint
         void setHasHint( WId, Atom, bool ) const;

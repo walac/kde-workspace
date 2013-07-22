@@ -32,13 +32,13 @@
 
 #include "oxygenstyleconfigdata.h"
 
-#include <QtCore/QEvent>
-#include <QtCore/QVector>
-#include <QtGui/QProgressBar>
-#include <QtGui/QPushButton>
+#include <QEvent>
+#include <QVector>
+#include <QProgressBar>
+#include <QPushButton>
 
-#ifdef Q_WS_X11
-#include <QtGui/QX11Info>
+#if HAVE_X11
+#include <QX11Info>
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 #endif
@@ -53,7 +53,7 @@ namespace Oxygen
         _enabled( false )
     {
 
-        #ifdef Q_WS_X11
+        #if HAVE_X11
 
         // create atom
         _blurAtom = XInternAtom( QX11Info::display(), "_KDE_NET_WM_BLUR_BEHIND_REGION", False);
@@ -219,7 +219,7 @@ namespace Oxygen
     void BlurHelper::update( QWidget* widget ) const
     {
 
-        #ifdef Q_WS_X11
+        #if HAVE_X11
 
         /*
         directly from bespin code. Supposibly prevent playing with some 'pseudo-widgets'
@@ -257,6 +257,10 @@ namespace Oxygen
         if( widget->isVisible() )
         { widget->update(); }
 
+        #else
+
+        Q_UNUSED( widget )
+
         #endif
 
     }
@@ -265,9 +269,11 @@ namespace Oxygen
     //___________________________________________________________
     void BlurHelper::clear( QWidget* widget ) const
     {
-        #ifdef Q_WS_X11
+        #if HAVE_X11
         XDeleteProperty( QX11Info::display(), widget->winId(), _blurAtom );
         XDeleteProperty( QX11Info::display(), widget->winId(), _opaqueAtom );
+        #else
+        Q_UNUSED( widget )
         #endif
 
     }

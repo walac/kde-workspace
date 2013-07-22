@@ -29,13 +29,13 @@
 
 #include "oxygendemowidget.h"
 
-#include <KDialog>
 #include <KPageWidget>
 #include <KPushButton>
 
-#include <QtCore/QList>
-#include <QtGui/QWidget>
-#include <QtGui/QCheckBox>
+#include <QList>
+#include <QWidget>
+#include <QCheckBox>
+#include <QDialog>
 
 namespace Oxygen
 {
@@ -47,7 +47,7 @@ namespace Oxygen
     class MdiDemoWidget;
     class SliderDemoWidget;
     class TabDemoWidget;
-    class DemoDialog: public KDialog
+    class DemoDialog: public QDialog
     {
         Q_OBJECT
 
@@ -60,12 +60,12 @@ namespace Oxygen
         virtual ~DemoDialog( void )
         {}
 
-        signals:
+        Q_SIGNALS:
 
         //! emitted when dialog is closed
         void abortSimulations( void );
 
-        protected slots:
+        protected Q_SLOTS:
 
         //! update window title when page is changed
         virtual void updateWindowTitle( KPageWidgetItem* );

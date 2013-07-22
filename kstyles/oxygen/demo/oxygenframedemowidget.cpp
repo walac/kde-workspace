@@ -27,11 +27,10 @@
 #include "oxygenframedemowidget.h"
 #include "oxygenframedemowidget.moc"
 
-#include <QtGui/QButtonGroup>
+#include <QButtonGroup>
 
 #include <KComboBox>
 #include <KLocale>
-#include <KTabWidget>
 
 namespace Oxygen
 {

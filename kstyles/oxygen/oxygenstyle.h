@@ -24,7 +24,7 @@
 // (c) 2002,2003 Maksim Orlovich <mo002j@mail.rochester.edu>
 // based on the KDE3 HighColor Style
 // Copyright (C) 2001-2002 Karol Szwed      <gallium@kde.org>
-// (C) 2001-2002 Fredrik HÃ¶glund  <fredrik@kde.org>
+// (C) 2001-2002 Fredrik Höglund  <fredrik@kde.org>
 // Drawing routines adapted from the KDE2 HCStyle,
 // Copyright (C) 2000 Daniel M. Duley       <mosfet@kde.org>
 // (C) 2000 Dirk Mueller          <mueller@kde.org>
@@ -51,18 +51,24 @@
 #include "oxygenmetrics.h"
 #include "oxygentileset.h"
 
-#include <QtCore/QMap>
-#include <QtGui/QAbstractScrollArea>
-#include <QtGui/QCommonStyle>
-#include <QtGui/QDockWidget>
-#include <QtGui/QMdiSubWindow>
-#include <QtGui/QStyleOption>
-#include <QtGui/QStyleOptionSlider>
-#include <QtGui/QToolBar>
-#include <QtGui/QToolBox>
-#include <QtGui/QWidget>
+#include <QMap>
+#include <QAbstractScrollArea>
+#include <QCommonStyle>
+#include <QDockWidget>
+#include <QMdiSubWindow>
+#include <QStyleOption>
+#include <QStyleOptionSlider>
+#include <QStylePlugin>
+#include <QToolBar>
+#include <QToolBox>
+#include <QWidget>
 
-#include <KIcon>
+#include <QIcon>
+
+namespace OxygenPrivate
+{
+    class TabBarData;
+}
 
 namespace Oxygen
 {
@@ -78,6 +84,23 @@ namespace Oxygen
     class WindowManager;
     class WidgetExplorer;
     class BlurHelper;
+
+    class StylePlugin : public QStylePlugin
+    {
+        Q_OBJECT
+        Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QStyleFactoryInterface" FILE "oxygen.json" )
+
+        public:
+
+        //! constructor
+        StylePlugin(QObject *parent = 0):
+            QStylePlugin(parent)
+        {}
+
+        //! create style
+        QStyle* create( const QString& );
+
+    };
 
     //! toplevel manager
     class TopLevelManager: public QObject
@@ -174,7 +197,6 @@ namespace Oxygen
         bool eventFilterComboBoxContainer( QWidget*, QEvent* );
         bool eventFilterDockWidget( QDockWidget*, QEvent* );
         bool eventFilterMdiSubWindow( QMdiSubWindow*, QEvent* );
-        bool eventFilterQ3ListView( QWidget*, QEvent* );
         bool eventFilterScrollBar( QWidget*, QEvent* );
         bool eventFilterTabBar( QWidget*, QEvent* );
         bool eventFilterToolBar( QToolBar*, QEvent* );
@@ -189,7 +211,7 @@ namespace Oxygen
 
         //@}
 
-        protected slots:
+        protected Q_SLOTS:
 
         //! update oxygen configuration
         void oxygenConfigurationChanged( void );
@@ -204,10 +226,7 @@ namespace Oxygen
         { return pixelMetric(PM_DefaultLayoutSpacing, option, widget); }
 
         //! standard icons
-        virtual QIcon standardIconImplementation(
-            StandardPixmap standardIcon,
-            const QStyleOption *option,
-            const QWidget *widget) const;
+        virtual QIcon standardIcon( StandardPixmap, const QStyleOption* = 0, const QWidget* = 0) const;
 
         protected:
 
@@ -281,59 +300,6 @@ namespace Oxygen
         //! list of slabs
         typedef QList<SlabRect> SlabRectList;
 
-        /*!
-        tabBar data class needed for
-        the rendering of tabbars when
-        one tab is being drawn
-        */
-        class TabBarData: public QObject
-        {
-
-            public:
-
-            //! constructor
-            explicit TabBarData( Style* parent ):
-                QObject( parent ),
-                _style( parent ),
-                _dirty( false )
-            {}
-
-            //! destructor
-            virtual ~TabBarData( void )
-            {}
-
-            //! assign target tabBar
-            void lock( const QWidget* widget )
-            { _tabBar = widget; }
-
-            //! true if tabbar is locked
-            bool locks( const QWidget* widget ) const
-            { return _tabBar && _tabBar.data() == widget; }
-
-            //! set dirty
-            void setDirty( const bool& value = true )
-            { _dirty = value; }
-
-            //! release
-            void release( void )
-            { _tabBar.clear(); }
-
-            //! draw tabBarBase
-            virtual void drawTabBarBaseControl( const QStyleOptionTab*, QPainter*, const QWidget* );
-
-            private:
-
-            //! pointer to parent style object
-            QWeakPointer<const Style> _style;
-
-            //! pointer to target tabBar
-            QWeakPointer<const QWidget> _tabBar;
-
-            //! if true, will paint on next TabBarTabShapeControlCall
-            bool _dirty;
-
-        };
-
         //@}
 
         //! animations
@@ -374,10 +340,6 @@ namespace Oxygen
         //! splitter factory
         SplitterFactory& splitterFactory( void ) const
         { return *_splitterFactory; }
-
-        //! tabBar data
-        TabBarData& tabBarData( void ) const
-        { return *_tabBarData; }
 
         //!@name subelementRect specialized functions
         //@{
@@ -515,8 +477,6 @@ namespace Oxygen
         bool drawPanelItemViewItemPrimitive( const QStyleOption*, QPainter*, const QWidget* ) const;
         bool drawPanelLineEditPrimitive( const QStyleOption*, QPainter*, const QWidget* ) const;
         bool drawIndicatorMenuCheckMarkPrimitive( const QStyleOption*, QPainter*, const QWidget* ) const;
-        bool drawQ3CheckListIndicatorPrimitive( const QStyleOption*, QPainter*, const QWidget* ) const;
-        bool drawQ3CheckListExclusiveIndicatorPrimitive( const QStyleOption*, QPainter*, const QWidget* ) const;
         bool drawIndicatorBranchPrimitive( const QStyleOption*, QPainter*, const QWidget* ) const;
         bool drawIndicatorButtonDropDownPrimitive( const QStyleOption*, QPainter*, const QWidget* ) const;
         bool drawIndicatorCheckBoxPrimitive( const QStyleOption*, QPainter*, const QWidget* ) const;
@@ -591,16 +551,11 @@ namespace Oxygen
         bool drawComboBoxComplexControl( const QStyleOptionComplex*, QPainter*, const QWidget* ) const;
         bool drawDialComplexControl( const QStyleOptionComplex*, QPainter*, const QWidget* ) const;
         bool drawGroupBoxComplexControl( const QStyleOptionComplex*, QPainter*, const QWidget* ) const;
-        bool drawQ3ListViewComplexControl( const QStyleOptionComplex*, QPainter*, const QWidget* ) const;
         bool drawSliderComplexControl( const QStyleOptionComplex*, QPainter*, const QWidget* ) const;
         bool drawSpinBoxComplexControl( const QStyleOptionComplex*, QPainter*, const QWidget* ) const;
         bool drawTitleBarComplexControl( const QStyleOptionComplex*, QPainter*, const QWidget* ) const;
         bool drawToolButtonComplexControl( const QStyleOptionComplex*, QPainter*, const QWidget* ) const;
         //@}
-
-        //! true if widget is child of KTextEdit
-        bool isKTextEditFrame( const QWidget* widget ) const
-        { return ( widget && widget->parentWidget() && qobject_cast<const QFrame*>( widget ) && widget->parentWidget()->inherits( "KTextEditor::View" ) ); }
 
         //! adjust rect based on provided margins
         QRect insideMargin( const QRect& r, int main, int left = 0, int top = 0, int right = 0, int bottom = 0 ) const
@@ -809,7 +764,7 @@ namespace Oxygen
         int newStyleElement( const QString &element, const char *check, int &counter )
         {
 
-            if( !element.contains(check) ) return 0;
+            if( !element.contains( QLatin1String( check ) ) ) return 0;
             int id = _styleElements.value(element, 0);
             if( !id )
             {
@@ -886,7 +841,7 @@ namespace Oxygen
         WidgetExplorer* _widgetExplorer;
 
         //! tabBar data
-        TabBarData* _tabBarData;
+        OxygenPrivate::TabBarData* _tabBarData;
 
         //! splitter Factory, to extend splitters hit area
         SplitterFactory* _splitterFactory;
@@ -919,7 +874,9 @@ namespace Oxygen
         //@}
 
         //! tab close button icon (cached)
-        mutable KIcon _tabCloseIcon;
+        mutable QIcon _tabCloseIcon;
+
+        friend class OxygenPrivate::TabBarData;
 
     };
 

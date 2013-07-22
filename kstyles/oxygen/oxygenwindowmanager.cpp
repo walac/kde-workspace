@@ -34,34 +34,32 @@
 #include "oxygenpropertynames.h"
 #include "oxygenstyleconfigdata.h"
 
-#include <QtGui/QApplication>
-#include <QtGui/QComboBox>
-#include <QtGui/QDialog>
-#include <QtGui/QDockWidget>
-#include <QtGui/QGraphicsView>
-#include <QtGui/QGroupBox>
-#include <QtGui/QLabel>
-#include <QtGui/QListView>
-#include <QtGui/QMainWindow>
-#include <QtGui/QMdiSubWindow>
-#include <QtGui/QMenuBar>
-#include <QtGui/QMouseEvent>
-#include <QtGui/QProgressBar>
-#include <QtGui/QScrollBar>
-#include <QtGui/QStatusBar>
-#include <QtGui/QStyle>
-#include <QtGui/QStyleOptionGroupBox>
-#include <QtGui/QTabBar>
-#include <QtGui/QTabWidget>
-#include <QtGui/QToolBar>
-#include <QtGui/QToolButton>
-#include <QtGui/QTreeView>
+#include <QApplication>
+#include <QComboBox>
+#include <QDialog>
+#include <QDockWidget>
+#include <QGraphicsView>
+#include <QGroupBox>
+#include <QLabel>
+#include <QListView>
+#include <QMainWindow>
+#include <QMdiSubWindow>
+#include <QMenuBar>
+#include <QMouseEvent>
+#include <QProgressBar>
+#include <QScrollBar>
+#include <QStatusBar>
+#include <QStyle>
+#include <QStyleOptionGroupBox>
+#include <QTabBar>
+#include <QTabWidget>
+#include <QToolBar>
+#include <QToolButton>
+#include <QTreeView>
 
-#include <QtCore/QTextStream>
+#include <QTextStream>
 
-#include <KGlobalSettings>
-
-#ifdef Q_WS_X11
+#if HAVE_X11
 #include <QX11Info>
 #include <NETRootInfo>
 #endif
@@ -75,7 +73,7 @@ namespace Oxygen
         _enabled( true ),
         _useWMMoveResize( true ),
         _dragMode( StyleConfigData::WD_FULL ),
-        _dragDistance( KGlobalSettings::dndEventDelay() ),
+        _dragDistance( QApplication::startDragDistance() ),
         _dragDelay( QApplication::startDragTime() ),
         _dragAboutToStart( false ),
         _dragInProgress( false ),
@@ -97,7 +95,7 @@ namespace Oxygen
         setDragMode( StyleConfigData::windowDragMode() );
         setUseWMMoveResize( StyleConfigData::useWMMoveResize() );
 
-        setDragDistance( KGlobalSettings::dndEventDelay() );
+        setDragDistance( QApplication::startDragDistance() );
         setDragDelay( QApplication::startDragTime() );
 
         initializeWhiteList();
@@ -109,19 +107,15 @@ namespace Oxygen
     void WindowManager::registerWidget( QWidget* widget )
     {
 
-        if( isBlackListed( widget ) )
+        if( isBlackListed( widget ) || isDragable( widget ) )
         {
 
             /*
+            install filter for dragable widgets.
             also install filter for blacklisted widgets
             to be able to catch the relevant events and prevent
             the drag to happen
             */
-            widget->removeEventFilter( this );
-            widget->installEventFilter( this );
-
-        } else if( isDragable( widget ) ) {
-
             widget->removeEventFilter( this );
             widget->installEventFilter( this );
 
@@ -143,9 +137,9 @@ namespace Oxygen
         _whiteList.clear();
 
         // add user specified whitelisted classnames
-        _whiteList.insert( ExceptionId( "MplayerWindow" ) );
-        _whiteList.insert( ExceptionId( "ViewSliders@kmix" ) );
-        _whiteList.insert( ExceptionId( "Sidebar_Widget@konqueror" ) );
+        _whiteList.insert( ExceptionId( QStringLiteral( "MplayerWindow" ) ) );
+        _whiteList.insert( ExceptionId( QStringLiteral( "ViewSliders@kmix" ) ) );
+        _whiteList.insert( ExceptionId( QStringLiteral( "Sidebar_Widget@konqueror" ) ) );
 
         foreach( const QString& exception, StyleConfigData::windowDragWhiteList() )
         {
@@ -160,9 +154,9 @@ namespace Oxygen
     {
 
         _blackList.clear();
-        _blackList.insert( ExceptionId( "CustomTrackView@kdenlive" ) );
-        _blackList.insert( ExceptionId( "MuseScore" ) );
-        _blackList.insert( ExceptionId( "KGameCanvasWidget" ) );
+        _blackList.insert( ExceptionId( QStringLiteral( "CustomTrackView@kdenlive" ) ) );
+        _blackList.insert( ExceptionId( QStringLiteral( "MuseScore" ) ) );
+        _blackList.insert( ExceptionId( QStringLiteral( "KGameCanvasWidget" ) ) );
         foreach( const QString& exception, StyleConfigData::windowDragBlackList() )
         {
             ExceptionId id( exception );
@@ -180,15 +174,15 @@ namespace Oxygen
         switch ( event->type() )
         {
             case QEvent::MouseButtonPress:
-                return mousePressEvent( object, event );
+            return mousePressEvent( object, event );
             break;
 
             case QEvent::MouseMove:
-                if ( object == _target.data() ) return mouseMoveEvent( object, event );
+            if ( object == _target.data() ) return mouseMoveEvent( object, event );
             break;
 
             case QEvent::MouseButtonRelease:
-                if ( _target ) return mouseReleaseEvent( object, event );
+            if ( _target ) return mouseReleaseEvent( object, event );
             break;
 
             default:
@@ -206,6 +200,7 @@ namespace Oxygen
 
         if( event->timerId() == _dragTimer.timerId() )
         {
+                        
             _dragTimer.stop();
             if( _target )
             { startDrag( _target.data(), _globalDragPoint ); }
@@ -286,8 +281,12 @@ namespace Oxygen
 
                 } else resetDrag();
 
-            } else if( QPoint( mouseEvent->globalPos() - _globalDragPoint ).manhattanLength() >= _dragDistance )
-            { _dragTimer.start( 0, this ); }
+            } else if( QPoint( mouseEvent->globalPos() - _globalDragPoint ).manhattanLength() >= _dragDistance ) { 
+                
+                _dragTimer.start( 0, this ); 
+            
+            }
+            
             return true;
 
         } else if( !useWMMoveResize() ) {
@@ -305,6 +304,7 @@ namespace Oxygen
     //_____________________________________________________________
     bool WindowManager::mouseReleaseEvent( QObject* object, QEvent* event )
     {
+        
         Q_UNUSED( object );
         Q_UNUSED( event );
         resetDrag();
@@ -390,14 +390,14 @@ namespace Oxygen
         foreach( const ExceptionId& id, _blackList )
         {
             if( !id.appName().isEmpty() && id.appName() != appName ) continue;
-            if( id.className() == "*" && !id.appName().isEmpty() )
+            if( id.className() == QStringLiteral( "*" ) && !id.appName().isEmpty() )
             {
                 // if application name matches and all classes are selected
                 // disable the grabbing entirely
                 setEnabled( false );
                 return true;
             }
-            if( widget->inherits( id.className().toLatin1() ) ) return true;
+            if( widget->inherits( id.className().toLatin1().data() ) ) return true;
         }
 
         return false;
@@ -411,7 +411,7 @@ namespace Oxygen
         foreach( const ExceptionId& id, _whiteList )
         {
             if( !id.appName().isEmpty() && id.appName() != appName ) continue;
-            if( widget->inherits( id.className().toLatin1() ) ) return true;
+            if( widget->inherits( id.className().toLatin1().data() ) ) return true;
         }
 
         return false;
@@ -616,21 +616,19 @@ namespace Oxygen
         if( useWMMoveResize() )
         {
 
-            #ifdef Q_WS_X11
+            #if HAVE_X11
             XUngrabPointer(QX11Info::display(), QX11Info::appTime());
             NETRootInfo rootInfo(QX11Info::display(), NET::WMMoveResize);
             rootInfo.moveResizeRequest( widget->window()->winId(), position.x(), position.y(), NET::Move);
+            #else
+            Q_UNUSED( position );
             #endif
 
-        }
-
-        if( !useWMMoveResize() )
-        {
-            if( !_cursorOverride )
-            {
-                qApp->setOverrideCursor( Qt::SizeAllCursor );
-                _cursorOverride = true;
-            }
+        } else if( !_cursorOverride ) {
+            
+            qApp->setOverrideCursor( Qt::SizeAllCursor );
+            _cursorOverride = true;
+            
         }
 
         _dragInProgress = true;
@@ -643,7 +641,7 @@ namespace Oxygen
     bool WindowManager::supportWMMoveResize( void ) const
     {
 
-        #ifdef Q_WS_X11
+        #if HAVE_X11
         return true;
         #endif
 
@@ -700,8 +698,8 @@ namespace Oxygen
     bool WindowManager::AppEventFilter::appMouseEvent( QObject* object, QEvent* event )
     {
 
-        Q_UNUSED( object );
-
+        Q_UNUSED( object );        
+        
         // store target window (see later)
         QWidget* window( _parent->_target.data()->window() );
 

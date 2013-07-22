@@ -25,31 +25,18 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "oxygendemodialog.h"
-#include <KCmdLineArgs>
-#include <KApplication>
-#include <KIcon>
-#include <KAboutData>
-#include <kdeversion.h>
 
-#include <cassert>
+#include <QApplication>
+#include <QIcon>
+
+#include <KLocalizedString>
 
 int main(int argc, char *argv[])
 {
-    KAboutData aboutData(
-        "oxygen-demo",
-        "kstyle_config",
-        ki18n( "Oxygen Demo" ),
-        KDE_VERSION_STRING,
-        ki18n( "Oxygen style demonstration" ),
-        KAboutData::License_GPL_V2,
-        ki18n( "(c) 2010, Hugo Pereira Da Costa" ));
 
-    aboutData.addAuthor( ki18n( "Hugo Pereira Da Costa" ),KLocalizedString(), "hugo@oxygen-icons.org" );
-
-    KCmdLineArgs::init( argc, argv, &aboutData );
-    KApplication app;
-
-    app.setWindowIcon( KIcon( "oxygen" ) );
+    QApplication app( argc, argv );
+    app.setApplicationName( i18n( "Oxygen Demo" ) );
+    app.setWindowIcon( QIcon::fromTheme( QStringLiteral( "oxygen" ) ) );
     Oxygen::DemoDialog dialog;
     dialog.show();
     bool result = app.exec();
