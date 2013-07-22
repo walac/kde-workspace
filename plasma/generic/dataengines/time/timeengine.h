@@ -54,7 +54,7 @@ class TimeEngine : public Plasma::DataEngine
         void tzConfigChanged();
 };
 
-K_PLUGIN_HEADER(TimeEngineFactory, TimeEngine, "plasma_engine_time.json")
+//K_PLUGIN_HEADER(TimeEngineFactory, TimeEngine, "plasma_engine_time.json")
 
 
 
