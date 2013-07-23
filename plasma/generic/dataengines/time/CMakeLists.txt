@@ -8,8 +8,8 @@ kde4_add_plugin(plasma_engine_time ${time_engine_SRCS})
 
 #add_library(plasma_engine_time SHARED ${time_engine_SRCS})
 target_link_libraries(plasma_engine_time
-    ${KDE4_KDECORE_LIBS}
-    ${KDE4_SOLID_LIBS}
+    ${KCore_LIBRARIES}
+    ${Solid_LIBRARIES}
     ${Plasma_LIBRARIES}
 )
 

@@ -153,7 +153,8 @@ void PowerManagementJob::setKeyboardBrightness(int value)
 
 void PowerManagementJob::requestShutDown()
 {
-    KWorkSpace::requestShutDown();
+#warning Enable KWorkSpace::requestShutDown() once kworkspace is ported
+    //KWorkSpace::requestShutDown();
 }
 
 #include "powermanagementjob.moc"

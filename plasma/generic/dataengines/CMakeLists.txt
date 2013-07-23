@@ -16,7 +16,7 @@
 ## KDE5: remove the nowplaying engine
 #add_subdirectory(nowplaying)
 #add_subdirectory(places)
-#add_subdirectory(powermanagement)
+add_subdirectory(powermanagement)
 #add_subdirectory(soliddevice)
 
 add_subdirectory(time)

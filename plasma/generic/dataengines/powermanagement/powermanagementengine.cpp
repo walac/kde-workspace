@@ -30,6 +30,7 @@
 
 #include <KDebug>
 #include <KLocale>
+#include <KLocalizedString>
 #include <KStandardDirs>
 #include <KIdleTime>
 
