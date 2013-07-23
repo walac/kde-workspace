@@ -826,7 +826,7 @@ void Client::hideClient(bool hide)
  */
 bool Client::isMinimizable() const
 {
-    if (isSpecialWindow())
+    if (isSpecialWindow() && !isTransient())
         return false;
     if (!rules()->checkMinimize(true))
         return false;
@@ -1183,6 +1183,8 @@ void Client::internalKeep()
     if (old == Unmapped || old == Withdrawn)
         map();
     m_decoInputExtent.unmap();
+    if (isActive())
+        workspace()->focusToNull(); // get rid of input focus, bug #317484
     updateHiddenPreview();
     addWorkspaceRepaint(visibleRect());
     workspace()->clientHidden(this);

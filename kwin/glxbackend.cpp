@@ -95,6 +95,8 @@ void GlxBackend::init()
     // Initialize OpenGL
     GLPlatform *glPlatform = GLPlatform::instance();
     glPlatform->detect(GlxPlatformInterface);
+    if (GLPlatform::instance()->driver() == Driver_Intel)
+        options->setUnredirectFullscreen(false); // bug #252817
     glPlatform->printResults();
     initGL(GlxPlatformInterface);
     // Check whether certain features are supported
@@ -169,6 +171,8 @@ bool GlxBackend::initRenderingContext()
         };
 
         const int attribs_legacy[] = {
+            GLX_CONTEXT_MAJOR_VERSION_ARB,               1,
+            GLX_CONTEXT_MINOR_VERSION_ARB,               2,
             0
         };
 
