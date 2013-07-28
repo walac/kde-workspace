@@ -12,19 +12,25 @@ set(KDE4WORKSPACE_VERSION ${KDE4WORKSPACE_VERSION_MAJOR}.${KDE4WORKSPACE_VERSION
 # where to look first for cmake modules, before ${CMAKE_ROOT}/Modules/ is checked
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules ${CMAKE_MODULE_PATH} )
 
+# Make CPack available to easy generate binary packages
+include(CPack)
+
+include(FeatureSummary)
+
+
 ################# set KDE specific information #################
 
 find_package(ECM 0.0.8 REQUIRED NO_MODULE)
-
-include(CMakePackageConfigHelpers)
 
 # where to look first for cmake modules, before ${CMAKE_ROOT}/Modules/ is checked
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ECM_MODULE_PATH})
 
 find_package(Qt5Core REQUIRED NO_MODULE)
+
 find_package(Qt5Transitional MODULE)
 find_package(Qt5Quick REQUIRED NO_MODULE)
 find_package(Qt5X11Extras REQUIRED NO_MODULE)
+
 
 #include(ConfigureChecks.cmake)
 
@@ -32,10 +38,12 @@ add_definitions(-DQT_DISABLE_DEPRECATED_BEFORE=0)
 
 find_package(kdeqt5staging REQUIRED NO_MODULE)
 # Load CMake, Compiler and InstallDirs settings from KF5 and the following are already somewhat "done" tier1/tier2 libs from kdelibs:
+# Load CMake, Compiler and InstallDirs settings from KF5 and the following are already somewhat "done" tier1/tier2 libs from kdelibs:
 find_package(KF5 MODULE REQUIRED COMPONENTS CMake Compiler InstallDirs
-    KIdleTime ItemModels KWidgetsAddons KWindowSystem KCodecs KArchive KCoreAddons Solid ThreadWeaver
-    KConfig KAuth KJS KWallet KDBusAddons Sonnet
-    KI18n KGuiAddons KService KWidgets ItemViews KNotifications KIconThemes KCompletion KJobWidgets KConfigWidgets KTextWidgets XmlGui KCrash)
+                                            KIdleTime ItemModels KWidgetsAddons KWindowSystem KCodecs KArchive KCoreAddons Solid ThreadWeaver
+                                            KConfig KAuth KJS KWallet KDBusAddons
+                                            KI18n KGuiAddons KService KWidgets ItemViews KNotifications KIconThemes KCompletion KJobWidgets KConfigWidgets Sonnet KTextWidgets XmlGui KCrash
+                                            KIO KUnitConversion KDE4Attic)
 
 find_package(KIO REQUIRED NO_MODULE)
 find_package(Plasma REQUIRED NO_MODULE)
@@ -166,12 +174,12 @@ set_package_properties(Fontconfig PROPERTIES DESCRIPTION "Font access configurat
                        PURPOSE "Needed to build font configuration and installation tools"
                       )
 
-find_package(Googlegadgets 0.11.0)
-set_package_properties(Googlegadgets PROPERTIES DESCRIPTION "Google Gadgets library"
-                       URL "http://code.google.com/p/google-gadgets-for-linux"
-                       TYPE OPTIONAL
-                       PURPOSE "Needed to build plasma scriptengine for google gadgets"
-                      )
+# find_package(Googlegadgets 0.11.0)
+# set_package_properties(Googlegadgets PROPERTIES DESCRIPTION "Google Gadgets library"
+#                        URL "http://code.google.com/p/google-gadgets-for-linux"
+#                        TYPE OPTIONAL
+#                        PURPOSE "Needed to build plasma scriptengine for google gadgets"
+#                       )
 
 #### Python support ( plasma scriptengines ) ####
 find_package(PythonLibrary)
@@ -181,13 +189,13 @@ set_package_properties(PythonLibrary PROPERTIES DESCRIPTION "Python scripting la
                        PURPOSE "Needed to build plasma scriptengine for python."
                       )
 
-find_package(Soprano 2.7.56)
-set_package_properties(Soprano PROPERTIES DESCRIPTION "Semantic Desktop Storing"
-                       URL "http://soprano.sourceforge.net"
-                       TYPE OPTIONAL
-                       PURPOSE "Required to build Nepomuk features."
-                      )
-
+# find_package(Soprano 2.7.56)
+# set_package_properties(Soprano PROPERTIES DESCRIPTION "Semantic Desktop Storing"
+#                        URL "http://soprano.sourceforge.net"
+#                        TYPE OPTIONAL
+#                        PURPOSE "Required to build Nepomuk features."
+#                       )
+# 
 find_package(NepomukCore QUIET CONFIG)
 set_package_properties(NepomukCore PROPERTIES DESCRIPTION "Nepomuk Core Library"
                        URL "https://projects.kde.org/nepomuk-core"
@@ -216,15 +224,15 @@ set_package_properties(KdepimLibs PROPERTIES DESCRIPTION "The KDEPIM libraries"
                        PURPOSE "Required to build certain Plasma DataEngines (Akonadi, Calendar)"
                       )
 
-find_package(QJSON)
-set_package_properties(QJSON PROPERTIES DESCRIPTION "Library to manage JSON objects with Qt"
-                       URL "http://qjson.sourceforge.net/"
-                       TYPE OPTIONAL
-                       PURPOSE "Required to build Chrome/Chromium support for Plasma Bookmarks Runners"
-                      )
+# find_package(QJSON)
+# set_package_properties(QJSON PROPERTIES DESCRIPTION "Library to manage JSON objects with Qt"
+#                        URL "http://qjson.sourceforge.net/"
+#                        TYPE OPTIONAL
+#                        PURPOSE "Required to build Chrome/Chromium support for Plasma Bookmarks Runners"
+#                       )
+# 
 
-
-include(ConfigureChecks.cmake)
+#include(ConfigureChecks.cmake)
 if(NOT WIN32)
   configure_file(config-unix.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-unix.h )
   configure_file(config-X11.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-X11.h )
@@ -305,9 +313,9 @@ if(NOT WIN32)
 #     macro_optional_add_subdirectory(cursors)
 endif(NOT WIN32)
 #
-macro_optional_add_subdirectory(plasma)
+add_subdirectory(plasma)
 # macro_optional_add_subdirectory(statusnotifierwatcher)
-macro_optional_add_subdirectory(kstyles)
+add_subdirectory(kstyles)
 #
 # ########### install files ###############
 if(NOT WIN32)
@@ -365,12 +373,8 @@ make_install_path_absolute(KDE4WORKSPACE_SERVICES_DIR ${SERVICES_INSTALL_DIR})
 make_install_path_absolute(KDE4WORKSPACE_SERVICETYPES_DIR ${SERVICETYPES_INSTALL_DIR})
 
 set(KDE4WORKSPACE_TARGET_PREFIX KDE4Workspace__)
-#
-configure_file(KDE4WorkspaceConfig.cmake.in "${CMAKE_CURRENT_BINARY_DIR}/KDE4WorkspaceConfig.cmake" @ONLY)
 
-# this file will be installed too and will be used by cmake when searching for the Config.cmake file to check the version of kdepimlibs, Alex
-macro_write_basic_cmake_version_file(${CMAKE_CURRENT_BINARY_DIR}/KDE4WorkspaceConfigVersion.cmake
-                                     ${KDE4WORKSPACE_VERSION_MAJOR} ${KDE4WORKSPACE_VERSION_MINOR} ${KDE4WORKSPACE_VERSION_PATCH})
+configure_file(KDE4WorkspaceConfig.cmake.in "${CMAKE_CURRENT_BINARY_DIR}/KDE4WorkspaceConfig.cmake" @ONLY)
 
 set(_KDE4WorkspaceConfig_INSTALL_DIR ${LIB_INSTALL_DIR}/KDE4Workspace/cmake)
 
@@ -382,11 +386,20 @@ if(KDE4_USE_COMMON_CMAKE_PACKAGE_CONFIG_DIR)
    set(_KDE4WorkspaceConfig_INSTALL_DIR ${LIB_INSTALL_DIR}/cmake/KDE4Workspace)
 endif(KDE4_USE_COMMON_CMAKE_PACKAGE_CONFIG_DIR)
 
+include(CMakePackageConfigHelpers)
+
+include(ECMSetupVersion)
+ecm_setup_version(${KDE4WORKSPACE_VERSION_MAJOR} ${KDE4WORKSPACE_VERSION_MINOR} ${KDE4WORKSPACE_VERSION_PATCH} VARIABLE_PREFIX PLASMA
+                        VERSION_HEADER "${CMAKE_CURRENT_BINARY_DIR}/kde4workspace_version.h"
+                        PACKAGE_VERSION_FILE "${CMAKE_CURRENT_BINARY_DIR}/KDE4WorkspaceConfigVersion.cmake")
+
+
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/KDE4WorkspaceConfig.cmake
               ${CMAKE_CURRENT_BINARY_DIR}/KDE4WorkspaceConfigVersion.cmake
         DESTINATION ${_KDE4WorkspaceConfig_INSTALL_DIR})
 
-# install(EXPORT kdeworkspaceLibraryTargets
+# FIXME: what's the EXPORT name here?
+# install(EXPORT kde4workspaceLibraryTargets
 #         NAMESPACE ${KDE4WORKSPACE_TARGET_PREFIX}
 #         DESTINATION ${_KDE4WorkspaceConfig_INSTALL_DIR}
 #         FILE KDE4WorkspaceLibraryTargets.cmake )
