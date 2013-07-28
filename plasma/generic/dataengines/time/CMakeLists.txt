@@ -11,6 +11,7 @@ target_link_libraries(plasma_engine_time
     ${KCore_LIBRARIES}
     ${Solid_LIBRARIES}
     ${Plasma_LIBRARIES}
+    ${KDE4Attic_LIBRARIES}
 )
 
 #target_link_libraries(plasma_engine_time ${KDE4_KDECORE_LIBS} ${KDE4_PLASMA_LIBS} ${KDE4_SOLID_LIBS})
