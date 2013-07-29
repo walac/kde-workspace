@@ -120,6 +120,7 @@ bool TimeEngine::updateSourceEvent(const QString &tz)
     return false;
 }
 
-K_EXPORT_PLASMA_DATAENGINE(time, TimeEngine)
+//K_EXPORT_PLASMA_DATAENGINE(time, TimeEngine)
+K_EXPORT_PLASMA_DATAENGINE_WITH_METADATA(time, TimeEngine, "plasma_engine_time.json")
 
 #include "timeengine.moc"
