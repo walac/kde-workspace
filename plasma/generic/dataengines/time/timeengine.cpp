@@ -45,8 +45,6 @@ TimeEngine::TimeEngine(const KPluginInfo &plugin, QObject *parent)
     : Plasma::DataEngine(plugin, parent)
 {
     setMinimumPollingInterval(333);
-    qDebug() << "right constructor for timeengine :)";
-
     // To have translated timezone names
     // (effectively a noop if the catalog is already present).
     //KGlobal::locale()->insertCatalog("timezones4");
@@ -59,6 +57,7 @@ TimeEngine::TimeEngine(QObject* parent, const QVariantList &args)
     // To have translated timezone names
     // (effectively a noop if the catalog is already present).
     //KGlobal::locale()->insertCatalog("timezones4");
+    qDebug() << " ########### Author: " << pluginInfo().author();
 }
 
 TimeEngine::~TimeEngine()
@@ -121,6 +120,6 @@ bool TimeEngine::updateSourceEvent(const QString &tz)
 }
 
 //K_EXPORT_PLASMA_DATAENGINE(time, TimeEngine)
-K_EXPORT_PLASMA_DATAENGINE_WITH_METADATA(time, TimeEngine, "plasma_engine_time.json")
+K_EXPORT_PLASMA_DATAENGINE_WITH_JSON(time, TimeEngine, "plasma_engine_time.json")
 
 #include "timeengine.moc"
