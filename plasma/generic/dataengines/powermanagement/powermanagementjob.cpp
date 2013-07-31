@@ -46,7 +46,7 @@ PowerManagementJob::~PowerManagementJob()
 void PowerManagementJob::start()
 {
     const QString operation = operationName();
-    //kDebug() << "starting operation  ... " << operation;
+    //qDebug() << "starting operation  ... " << operation;
 
     if (operation == "lockScreen") {
         if (KAuthorized::authorizeKAction("lock_screen")) {
@@ -56,7 +56,7 @@ void PowerManagementJob::start()
             setResult(true);
             return;
         }
-        kDebug() << "operation denied " << operation;
+        qDebug() << "operation denied " << operation;
         setResult(false);
         return;
     } else if (operation == "suspend" || operation == "suspendToRam") {
@@ -100,7 +100,7 @@ void PowerManagementJob::start()
         return;
     }
 
-    kDebug() << "don't know what to do with " << operation;
+    qDebug() << "don't know what to do with " << operation;
     setResult(false);
 }
 
