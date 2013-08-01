@@ -33,6 +33,8 @@
 #include <KStandardDirs>
 #include <KIdleTime>
 
+#include <QDebug>
+
 #include <QtDBus/QDBusConnectionInterface>
 #include <QtDBus/QDBusError>
 #include <QtDBus/QDBusInterface>
