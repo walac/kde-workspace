@@ -28,9 +28,8 @@
 #include <solid/battery.h>
 #include <solid/powermanagement.h>
 
-#include <KDebug>
 #include <KLocale>
-#include <KLocalizedString>
+#include <klocalizedstring.h>
 #include <KStandardDirs>
 #include <KIdleTime>
 

@@ -30,8 +30,6 @@
 
 #include "powermanagementjob.h"
 
-#include <kdebug.h>
-
 #include <Solid/PowerManagement>
 
 PowerManagementJob::PowerManagementJob(const QString &operation, QMap<QString, QVariant> &parameters, QObject *parent) :
@@ -153,8 +151,7 @@ void PowerManagementJob::setKeyboardBrightness(int value)
 
 void PowerManagementJob::requestShutDown()
 {
-#warning Enable KWorkSpace::requestShutDown() once kworkspace is ported
-    //KWorkSpace::requestShutDown();
+    KWorkSpace::requestShutDown();
 }
 
 #include "powermanagementjob.moc"
