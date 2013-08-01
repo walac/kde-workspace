@@ -21,15 +21,11 @@
 #include "timeengine.h"
 
 #include <QDate>
-#include <QDebug>
 #include <QDBusConnection>
 #include <QStringList>
 #include <QTime>
-#include <QVariantList>
 
-#include <KGlobal>
 #include <KLocale>
-#include <KLocalizedString>
 #include <KSystemTimeZones>
 #include <KDateTime>
 #include <Solid/PowerManagement>
@@ -41,23 +37,15 @@
 #undef timezone
 #endif
 
-TimeEngine::TimeEngine(const KPluginInfo &plugin, QObject *parent)
-    : Plasma::DataEngine(plugin, parent)
-{
-    setMinimumPollingInterval(333);
-    // To have translated timezone names
-    // (effectively a noop if the catalog is already present).
-    //KGlobal::locale()->insertCatalog("timezones4");
-}
-
-TimeEngine::TimeEngine(QObject* parent, const QVariantList &args)
+TimeEngine::TimeEngine(QObject *parent, const QVariantList &args)
     : Plasma::DataEngine(parent, args)
 {
+    Q_UNUSED(args)
     setMinimumPollingInterval(333);
+
     // To have translated timezone names
     // (effectively a noop if the catalog is already present).
-    //KGlobal::locale()->insertCatalog("timezones4");
-    qDebug() << " ########### Author: " << pluginInfo().author();
+    KGlobal::locale()->insertCatalog("timezones4");
 }
 
 TimeEngine::~TimeEngine()
@@ -76,7 +64,7 @@ void TimeEngine::init()
 
 void TimeEngine::clockSkewed()
 {
-    qDebug() << "Time engine Clock skew signaled";
+    kDebug() << "Time engine Clock skew signaled";
     updateAllSources();
     forceImmediateUpdateOfAllVisualizations();
 }
@@ -111,15 +99,13 @@ bool TimeEngine::updateSourceEvent(const QString &tz)
 
     if (s) {
         s->updateTime();
-#warning "What to do with scheduleSourcesUpdated()?"
-        //scheduleSourcesUpdated();
+        scheduleSourcesUpdated();
         return true;
     }
 
     return false;
 }
 
-//K_EXPORT_PLASMA_DATAENGINE(time, TimeEngine)
-K_EXPORT_PLASMA_DATAENGINE_WITH_JSON(time, TimeEngine, "plasma_engine_time.json")
+K_EXPORT_PLASMA_DATAENGINE_WITH_JSON(time, TimeEngine, plasma-dataengine-time.json)
 
 #include "timeengine.moc"
