@@ -8,7 +8,7 @@ set(powermanagement_engine_SRCS
 set(krunner_xml ${KDEBASE_WORKSPACE_SOURCE_DIR}/krunner/dbus/org.kde.krunner.App.xml)
 QT4_ADD_DBUS_INTERFACE(powermanagement_engine_SRCS ${krunner_xml} krunner_interface)
 
-desktop_to_json(plasma_engine_powermanagement plasma-dataengine-powermanagement.desktop plasma-dataengine-powermanagement.json)
+desktop_to_json(plasma_engine_powermanagement plasma-dataengine-powermanagement.desktop)
 
 kde4_add_plugin(plasma_engine_powermanagement ${powermanagement_engine_SRCS})
 
