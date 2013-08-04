@@ -10,8 +10,6 @@ set(powermanagement_engine_SRCS
 set(krunner_xml ${KDEBASE_WORKSPACE_SOURCE_DIR}/krunner/dbus/org.kde.krunner.App.xml)
 QT4_ADD_DBUS_INTERFACE(powermanagement_engine_SRCS ${krunner_xml} krunner_interface)
 
-
-#kde4_add_plugin(plasma_engine_powermanagement ${powermanagement_engine_SRCS})
 add_library(plasma_engine_powermanagement MODULE ${powermanagement_engine_SRCS} )
 set_target_properties(plasma_engine_powermanagement PROPERTIES PREFIX "")
 
