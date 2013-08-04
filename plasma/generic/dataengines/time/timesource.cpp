@@ -28,7 +28,6 @@
 
 #include <QDateTime>
 
-#include <KDebug>
 #include <KSystemTimeZones>
 #include <KLocalizedString>
 
