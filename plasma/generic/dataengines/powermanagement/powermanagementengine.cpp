@@ -483,6 +483,6 @@ void PowermanagementEngine::keyboardBrightnessReply(QDBusPendingCallWatcher *wat
     watcher->deleteLater();
 }
 
-K_EXPORT_PLASMA_DATAENGINE(powermanagement, PowermanagementEngine)
+K_EXPORT_PLASMA_DATAENGINE_WITH_JSON(powermanagement, PowermanagementEngine, "plasma-dataengine-powermanagement.json")
 
 #include "powermanagementengine.moc"
