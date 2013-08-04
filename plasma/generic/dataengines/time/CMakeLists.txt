@@ -1,3 +1,6 @@
+
+desktop_to_json(plasma-dataengine-time.desktop)
+
 set(time_engine_SRCS
     timeengine.cpp
     timesource.cpp
