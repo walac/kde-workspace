@@ -30,6 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <KActionCollection>
 #include <kaction.h>
 #include <KShortcutsEditor>
+#include <KDE/KAboutData>
 
 #include <QWidget>
 #include <QVBoxLayout>
@@ -45,7 +46,7 @@ ThumbnailAsideEffectConfigForm::ThumbnailAsideEffectConfigForm(QWidget* parent) 
 }
 
 ThumbnailAsideEffectConfig::ThumbnailAsideEffectConfig(QWidget* parent, const QVariantList& args) :
-    KCModule(EffectFactory::componentData(), parent, args)
+    KCModule(KAboutData::pluginData(QStringLiteral("thumbnailaside")), parent, args)
 {
     m_ui = new ThumbnailAsideEffectConfigForm(this);
 
@@ -57,18 +58,21 @@ ThumbnailAsideEffectConfig::ThumbnailAsideEffectConfig(QWidget* parent, const QV
 
     addConfig(ThumbnailAsideConfig::self(), this);
 
+#warning Global Shortcuts need porting
+#if KWIN_QT5_PORTING
     // Shortcut config. The shortcut belongs to the component "kwin"!
     m_actionCollection = new KActionCollection(this, KComponentData("kwin"));
 
-    m_actionCollection->setConfigGroup("ThumbnailAside");
+    m_actionCollection->setConfigGroup(QStringLiteral("ThumbnailAside"));
     m_actionCollection->setConfigGlobal(true);
 
-    KAction* a = (KAction*)m_actionCollection->addAction("ToggleCurrentThumbnail");
+    KAction* a = (KAction*)m_actionCollection->addAction(QStringLiteral("ToggleCurrentThumbnail"));
     a->setText(i18n("Toggle Thumbnail for Current Window"));
     a->setProperty("isConfigurationAction", true);
     a->setGlobalShortcut(KShortcut(Qt::META + Qt::CTRL + Qt::Key_T));
 
     m_ui->editor->addCollection(m_actionCollection);
+#endif
 
     load();
 }
@@ -82,7 +86,7 @@ ThumbnailAsideEffectConfig::~ThumbnailAsideEffectConfig()
 void ThumbnailAsideEffectConfig::save()
 {
     KCModule::save();
-    EffectsHandler::sendReloadMessage("thumbnailaside");
+    EffectsHandler::sendReloadMessage(QStringLiteral("thumbnailaside"));
 }
 
 } // namespace

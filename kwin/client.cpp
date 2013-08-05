@@ -54,10 +54,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QScriptProgram>
 #endif
 #include <QWhatsThis>
-// X
-#ifdef HAVE_XSYNC
-#include <X11/extensions/sync.h>
-#endif
 // system
 #include <unistd.h>
 #include <signal.h>
@@ -140,13 +136,12 @@ Client::Client()
     , m_menuAvailable(false)
 #endif
     , m_decoInputExtent()
+    , m_focusOutTimer(nullptr)
 {
     // TODO: Do all as initialization
-#ifdef HAVE_XSYNC
-    syncRequest.counter = syncRequest.alarm = None;
+    syncRequest.counter = syncRequest.alarm = XCB_NONE;
     syncRequest.timeout = syncRequest.failsafeTimeout = NULL;
     syncRequest.isPending = false;
-#endif
 
     // Set the initial mapping state
     mapping_state = Withdrawn;
@@ -227,10 +222,8 @@ Client::~Client()
         m_killHelperPID = 0;
     }
     //SWrapper::Client::clientRelease(this);
-#ifdef HAVE_XSYNC
-    if (syncRequest.alarm != None)
-        XSyncDestroyAlarm(display(), syncRequest.alarm);
-#endif
+    if (syncRequest.alarm != XCB_NONE)
+        xcb_sync_destroy_alarm(connection(), syncRequest.alarm);
     assert(!moveResizeMode);
     assert(m_client == XCB_WINDOW_NONE);
     assert(m_wrapper == XCB_WINDOW_NONE);
@@ -355,22 +348,8 @@ void Client::destroyClient()
     deleteClient(this);
 }
 
-// DnD handling for input shaping is broken in the clients for all Qt versions before 4.8.3
-// NOTICE do not query the Qt version macro, this is a runtime problem!
-// TODO KDE5 remove this 
-static inline bool qtBefore483()
-{
-    QStringList l = QString(qVersion()).split(".");
-    // "4.x.y"
-    return l.at(1).toUInt() < 5 && l.at(1).toUInt() < 9 && l.at(2).toUInt() < 3;
-}
-
 void Client::updateInputWindow()
 {
-    static bool brokenQtInputHandling = qtBefore483();
-    if (brokenQtInputHandling)
-        return;
-
     QRegion region;
 
     if (!noBorder()) {
@@ -1377,18 +1356,18 @@ void Client::killProcess(bool ask, xcb_timestamp_t timestamp)
     if (!ask) {
         if (!clientMachine()->isLocal()) {
             QStringList lst;
-            lst << clientMachine()->hostName() << "kill" << QString::number(pid);
-            QProcess::startDetached("xon", lst);
+            lst << QString::fromUtf8(clientMachine()->hostName()) << QStringLiteral("kill") << QString::number(pid);
+            QProcess::startDetached(QStringLiteral("xon"), lst);
         } else
             ::kill(pid, SIGTERM);
     } else {
-        QString hostname = clientMachine()->isLocal() ? "localhost" : clientMachine()->hostName();
-        QProcess::startDetached(KStandardDirs::findExe("kwin_killer_helper"),
-                                QStringList() << "--pid" << QByteArray().setNum(unsigned(pid)) << "--hostname" << hostname
-                                << "--windowname" << caption()
-                                << "--applicationname" << resourceClass()
-                                << "--wid" << QString::number(window())
-                                << "--timestamp" << QString::number(timestamp),
+        QString hostname = clientMachine()->isLocal() ? QStringLiteral("localhost") : QString::fromUtf8(clientMachine()->hostName());
+        QProcess::startDetached(KStandardDirs::findExe(QStringLiteral("kwin_killer_helper")),
+                                QStringList() << QStringLiteral("--pid") << QString::number(unsigned(pid)) << QStringLiteral("--hostname") << hostname
+                                << QStringLiteral("--windowname") << caption()
+                                << QStringLiteral("--applicationname") << QString::fromUtf8(resourceClass())
+                                << QStringLiteral("--wid") << QString::number(window())
+                                << QStringLiteral("--timestamp") << QString::number(timestamp),
                                 QString(), &m_killHelperPID);
     }
 }
@@ -1517,9 +1496,9 @@ void Client::setOnActivity(const QString &activity, bool enable)
 void Client::setOnActivities(QStringList newActivitiesList)
 {
 #ifdef KWIN_BUILD_ACTIVITIES
-    QString joinedActivitiesList = newActivitiesList.join(",");
+    QString joinedActivitiesList = newActivitiesList.join(QStringLiteral(","));
     joinedActivitiesList = rules()->checkActivity(joinedActivitiesList, false);
-    newActivitiesList = joinedActivitiesList.split(',', QString::SkipEmptyParts);
+    newActivitiesList = joinedActivitiesList.split(QStringLiteral(","), QString::SkipEmptyParts);
 
     QStringList allActivities = Activities::self()->all();
     if ( newActivitiesList.isEmpty() ||
@@ -1755,7 +1734,7 @@ void Client::setCaption(const QString& _s, bool force)
     QString s(_s);
     for (int i = 0; i < s.length(); ++i)
         if (!s[i].isPrint())
-            s[i] = QChar(' ');
+            s[i] = QChar(u' ');
     cap_normal = s;
 #ifdef KWIN_BUILD_SCRIPTING
     if (options->condensedTitle()) {
@@ -1763,21 +1742,21 @@ void Client::setCaption(const QString& _s, bool force)
         static QScriptProgram stripTitle;
         static QScriptValue script;
         if (stripTitle.isNull()) {
-            const QString scriptFile = KStandardDirs::locate("data", QLatin1String(KWIN_NAME) + "/stripTitle.js");
+            const QString scriptFile = KStandardDirs::locate("data", QStringLiteral(KWIN_NAME) + QStringLiteral("/stripTitle.js"));
             if (!scriptFile.isEmpty()) {
                 QFile f(scriptFile);
                 if (f.open(QIODevice::ReadOnly|QIODevice::Text)) {
                     f.reset();
-                    stripTitle = QScriptProgram(QString::fromLocal8Bit(f.readAll()), "stripTitle.js");
+                    stripTitle = QScriptProgram(QString::fromLocal8Bit(f.readAll()), QStringLiteral("stripTitle.js"));
                     f.close();
                 }
             }
             if (stripTitle.isNull())
-                stripTitle = QScriptProgram("(function(title, wm_name, wm_class){ return title ; })", "stripTitle.js");
+                stripTitle = QScriptProgram(QStringLiteral("(function(title, wm_name, wm_class){ return title ; })"), QStringLiteral("stripTitle.js"));
             script = engine.evaluate(stripTitle);
         }
         QScriptValueList args;
-        args << _s << QString(resourceName()) << QString(resourceClass());
+        args << _s << QString::fromUtf8(resourceName()) << QString::fromUtf8(resourceClass());
         s = script.call(QScriptValue(), args).toString();
     }
 #endif
@@ -1791,17 +1770,17 @@ void Client::setCaption(const QString& _s, bool force)
     QString machine_suffix;
     if (!options->condensedTitle()) { // machine doesn't qualify for "clean"
         if (clientMachine()->hostName() != ClientMachine::localhost() && !clientMachine()->isLocal())
-            machine_suffix = QString(" <@") + clientMachine()->hostName() + '>' + LRM;
+            machine_suffix = QStringLiteral(" <@") + QString::fromUtf8(clientMachine()->hostName()) + QStringLiteral(">") + LRM;
     }
-    QString shortcut_suffix = !shortcut().isEmpty() ? (" {" + shortcut().toString() + '}') : QString();
+    QString shortcut_suffix = !shortcut().isEmpty() ? (QStringLiteral(" {") + shortcut().toString() + QStringLiteral("}")) : QString();
     cap_suffix = machine_suffix + shortcut_suffix;
     if ((!isSpecialWindow() || isToolbar()) && workspace()->findClient(FetchNameInternalPredicate(this))) {
         int i = 2;
         do {
-            cap_suffix = machine_suffix + " <" + QString::number(i) + '>' + LRM;
+            cap_suffix = machine_suffix + QStringLiteral(" <") + QString::number(i) + QStringLiteral(">") + LRM;
             i++;
         } while (workspace()->findClient(FetchNameInternalPredicate(this)));
-        info->setVisibleName(caption().toUtf8());
+        info->setVisibleName(caption().toUtf8().constData());
         reset_name = false;
     }
     if ((was_suffix && cap_suffix.isEmpty()) || reset_name) {
@@ -1810,7 +1789,7 @@ void Client::setCaption(const QString& _s, bool force)
         info->setVisibleIconName("");
     } else if (!cap_suffix.isEmpty() && !cap_iconic.isEmpty())
         // Keep the same suffix in iconic name if it's set
-        info->setVisibleIconName(QString(cap_iconic + cap_suffix).toUtf8());
+        info->setVisibleIconName(QString(cap_iconic + cap_suffix).toUtf8().constData());
 
     emit captionChanged();
 }
@@ -1832,7 +1811,7 @@ void Client::fetchIconicName()
         cap_iconic = s;
         if (!cap_suffix.isEmpty()) {
             if (!cap_iconic.isEmpty())  // Keep the same suffix in iconic name if it's set
-                info->setVisibleIconName(QString(s + cap_suffix).toUtf8());
+                info->setVisibleIconName(QString(s + cap_suffix).toUtf8().constData());
             else if (was_set)
                 info->setVisibleIconName("");
         }
@@ -2123,7 +2102,6 @@ void Client::getWindowProtocols()
 
 void Client::getSyncCounter()
 {
-#ifdef HAVE_XSYNC
     if (!Xcb::Extensions::self()->isSyncAvailable())
         return;
 
@@ -2137,26 +2115,31 @@ void Client::getSyncCounter()
 
     if (ret == Success && formatRet == 32) {
         syncRequest.counter = *(long*)(propRet);
-        XSyncIntToValue(&syncRequest.value, 0);
-        XSyncValue zero;
-        XSyncIntToValue(&zero, 0);
-        XSyncSetCounter(display(), syncRequest.counter, zero);
-        if (syncRequest.alarm == None) {
-            XSyncAlarmAttributes attrs;
-            attrs.trigger.counter = syncRequest.counter;
-            attrs.trigger.value_type = XSyncRelative;
-            attrs.trigger.test_type = XSyncPositiveTransition;
-            XSyncIntToValue(&attrs.trigger.wait_value, 1);
-            XSyncIntToValue(&attrs.delta, 1);
-            syncRequest.alarm = XSyncCreateAlarm(display(),
-                                          XSyncCACounter | XSyncCAValueType | XSyncCATestType | XSyncCADelta | XSyncCAValue,
-                                          &attrs);
+        syncRequest.value.hi = 0;
+        syncRequest.value.lo = 0;
+        xcb_sync_int64_t zero;
+        zero.hi = 0;
+        zero.lo = 0;
+        auto *c = connection();
+        xcb_sync_set_counter(c, syncRequest.counter, zero);
+        if (syncRequest.alarm == XCB_NONE) {
+            const uint32_t mask = XCB_SYNC_CA_COUNTER | XCB_SYNC_CA_VALUE_TYPE | XCB_SYNC_CA_VALUE | XCB_SYNC_CA_TEST_TYPE | XCB_SYNC_CA_DELTA ;
+            const uint32_t values[] = {
+                syncRequest.counter,
+                XCB_SYNC_VALUETYPE_RELATIVE,
+                0,
+                1,
+                XCB_SYNC_TESTTYPE_POSITIVE_TRANSITION,
+                0,
+                1
+            };
+            syncRequest.alarm = xcb_generate_id(c);
+            xcb_sync_create_alarm(c, syncRequest.alarm, mask, values);
         }
     }
 
     if (ret == Success)
         XFree(propRet);
-#endif
 }
 
 /**
@@ -2164,8 +2147,7 @@ void Client::getSyncCounter()
  */
 void Client::sendSyncRequest()
 {
-#ifdef HAVE_XSYNC
-    if (syncRequest.counter == None || syncRequest.isPending)
+    if (syncRequest.counter == XCB_NONE || syncRequest.isPending)
         return; // do NOT, NEVER send a sync request when there's one on the stack. the clients will just stop respoding. FOREVER! ...
 
     if (!syncRequest.failsafeTimeout) {
@@ -2180,11 +2162,11 @@ void Client::sendSyncRequest()
     // We increment before the notify so that after the notify
     // syncCounterSerial will equal the value we are expecting
     // in the acknowledgement
-    int overflow;
-    XSyncValue one;
-    XSyncIntToValue(&one, 1);
-#undef XSyncValueAdd // It causes a warning :-/
-    XSyncValueAdd(&syncRequest.value, syncRequest.value, one, &overflow);
+    const uint32_t oldLo = syncRequest.value.lo;
+    syncRequest.value.lo++;;
+    if (oldLo > syncRequest.value.lo) {
+        syncRequest.value.hi++;
+    }
 
     // Send the message to client
     XEvent ev;
@@ -2194,13 +2176,12 @@ void Client::sendSyncRequest()
     ev.xclient.message_type = atoms->wm_protocols;
     ev.xclient.data.l[0] = atoms->net_wm_sync_request;
     ev.xclient.data.l[1] = xTime();
-    ev.xclient.data.l[2] = XSyncValueLow32(syncRequest.value);
-    ev.xclient.data.l[3] = XSyncValueHigh32(syncRequest.value);
+    ev.xclient.data.l[2] = syncRequest.value.lo;
+    ev.xclient.data.l[3] = syncRequest.value.hi;
     ev.xclient.data.l[4] = 0;
     syncRequest.isPending = true;
     XSendEvent(display(), window(), False, NoEventMask, &ev);
-    XSync(display(), false);
-#endif
+    Xcb::sync();
 }
 
 void Client::removeSyncSupport()
@@ -2209,12 +2190,10 @@ void Client::removeSyncSupport()
         setReadyForPainting();
         return;
     }
-#ifdef HAVE_XSYNC
     syncRequest.isPending = false;
-    syncRequest.counter = syncRequest.alarm = None;
+    syncRequest.counter = syncRequest.alarm = XCB_NONE;
     delete syncRequest.timeout; delete syncRequest.failsafeTimeout;
     syncRequest.timeout = syncRequest.failsafeTimeout = NULL;
-#endif
 }
 
 bool Client::wantsTabFocus() const
@@ -2363,7 +2342,7 @@ QPixmap* kwin_get_menu_pix_hack()
 {
     static QPixmap p;
     if (p.isNull())
-        p = SmallIcon("bx2");
+        p = SmallIcon(QStringLiteral("bx2"));
     return &p;
 }
 
@@ -2373,7 +2352,7 @@ void Client::checkActivities()
     QStringList newActivitiesList;
     QByteArray prop = getStringProperty(window(), atoms->activities);
     activitiesDefined = !prop.isEmpty();
-    if (prop == Activities::nullUuid()) {
+    if (QString::fromUtf8(prop) == Activities::nullUuid()) {
         //copied from setOnAllActivities to avoid a redundant XChangeProperty.
         if (!activityList.isEmpty()) {
             activityList.clear();
@@ -2390,7 +2369,7 @@ void Client::checkActivities()
         return;
     }
 
-    newActivitiesList = QString(prop).split(',');
+    newActivitiesList = QString::fromUtf8(prop).split(QStringLiteral(","));
 
     if (newActivitiesList == activityList)
         return; //expected change, it's ok.
@@ -2510,6 +2489,13 @@ bool Client::decorationHasAlpha() const
     } else {
         // decoration has alpha enabled and does not support alpha announcement
         return true;
+    }
+}
+
+void Client::cancelFocusOutTimer()
+{
+    if (m_focusOutTimer) {
+        m_focusOutTimer->stop();
     }
 }
 

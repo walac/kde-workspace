@@ -22,13 +22,21 @@ include(FeatureSummary)
 
 find_package(ECM 0.0.8 REQUIRED NO_MODULE)
 
+include(CMakePackageConfigHelpers)
+include(FeatureSummary)
+include(WriteBasicConfigVersionFile)
+
 # where to look first for cmake modules, before ${CMAKE_ROOT}/Modules/ is checked
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ECM_MODULE_PATH})
 
+include(ECMOptionalAddSubdirectory)
+
 find_package(Qt5Core REQUIRED NO_MODULE)
 
+find_package(Qt5DBus REQUIRED NO_MODULE)
 find_package(Qt5Transitional MODULE)
 find_package(Qt5Quick REQUIRED NO_MODULE)
+find_package(Qt5Widgets REQUIRED NO_MODULE)
 find_package(Qt5X11Extras REQUIRED NO_MODULE)
 
 
@@ -40,12 +48,11 @@ find_package(kdeqt5staging REQUIRED NO_MODULE)
 # Load CMake, Compiler and InstallDirs settings from KF5 and the following are already somewhat "done" tier1/tier2 libs from kdelibs:
 # Load CMake, Compiler and InstallDirs settings from KF5 and the following are already somewhat "done" tier1/tier2 libs from kdelibs:
 find_package(KF5 MODULE REQUIRED COMPONENTS CMake Compiler InstallDirs
-                                            KIdleTime ItemModels KWidgetsAddons KWindowSystem KCodecs KArchive KCoreAddons Solid ThreadWeaver
-                                            KConfig KAuth KJS KWallet KDBusAddons
-                                            KI18n KGuiAddons KService KWidgets ItemViews KNotifications KIconThemes KCompletion KJobWidgets KConfigWidgets Sonnet KTextWidgets XmlGui KCrash
-                                            KIO KUnitConversion KDE4Attic)
+    KIdleTime ItemModels KWidgetsAddons KWindowSystem KCodecs KArchive KCoreAddons Solid ThreadWeaver
+    KConfig KAuth KJS KWallet KDBusAddons Sonnet
+    KI18n KGuiAddons KService KWidgets ItemViews KNotifications KIconThemes KCompletion KJobWidgets KConfigWidgets KTextWidgets XmlGui KCrash
+    KIO KUnitConversion KDE4Attic)
 
-find_package(KIO REQUIRED NO_MODULE)
 find_package(Plasma REQUIRED NO_MODULE)
 find_package(kdeclarative REQUIRED NO_MODULE)
 
@@ -81,7 +88,7 @@ set_package_properties(LibAttica PROPERTIES DESCRIPTION "Support for Get Hot New
                        TYPE REQUIRED
                       )
 
-find_package(DBusMenuQt 0.6.0)
+find_package(DBusMenuQt5)
 set_package_properties(DBusMenuQt PROPERTIES DESCRIPTION "Support for notification area menus via the DBusMenu protocol"
                        URL "https://launchpad.net/libdbusmenu-qt"
                        TYPE REQUIRED
@@ -111,24 +118,25 @@ set_package_properties(OpenGLES PROPERTIES DESCRIPTION "The OpenGLES libraries"
                        TYPE OPTIONAL
                       )
 
+find_package(X11)
+if (X11_FOUND)
+   set (HAVE_X11 1)
+else ()
+   set (HAVE_X11 0)
+endif ()
+set_package_properties(X11 PROPERTIES DESCRIPTION "X11 libraries"
+                        URL "http://www.x.org"
+                        TYPE OPTIONAL
+                        PURPOSE "Required for building the X11 based workspace"
+                    )
 
-if(Q_WS_X11)
+if(HAVE_X11)
   find_package(XCB REQUIRED)
   set_package_properties(XCB PROPERTIES DESCRIPTION "X protocol C-language Binding"
                          URL "http://xcb.freedesktop.org"
                          TYPE REQUIRED
                         )
 
-  find_package(X11_XCB)
-  set_package_properties(X11_XCB PROPERTIES DESCRIPTION "XCB X11 protocol client library"
-                         TYPE REQUIRED
-                        )
-
-  find_package(X11 REQUIRED)
-  set_package_properties(X11 PROPERTIES DESCRIPTION "X11 libraries"
-                         URL "http://www.x.org"
-                         TYPE REQUIRED
-                        )
 
   add_feature_info("Automated testing of X clients" X11_XTest_FOUND
                    "The X11 Testing Resource extension library is useful for automated testing of X clients")
@@ -158,7 +166,7 @@ if(Q_WS_X11)
   if(NOT X11_Xcursor_FOUND)
     message(FATAL_ERROR "The X11 cursor management library was not found. Required for desktop effects support in KWin.")
   endif()
-endif(Q_WS_X11)
+endif()
 
 find_package(GLIB2 2.0)
 set_package_properties(GLIB2 PROPERTIES DESCRIPTION "Low-level core library for data structure handling, portability wrappers, etc."
@@ -245,6 +253,13 @@ configure_file(config-workspace.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-works
 
 add_definitions(${QT_DEFINITIONS} ${KDE4_DEFINITIONS} -DHAVE_CONFIG_H=1)
 add_definitions(-DQT_USE_FAST_CONCATENATION -DQT_USE_FAST_OPERATOR_PLUS)
+
+################# Enable C++11 features for clang and gcc #################
+
+if(UNIX)
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++0x")
+endif()
+
 include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR} ${KDE4_INCLUDES} ${KACTIVITIES_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/libs)
 
 add_definitions(-DDISABLE_NEPOMUK_LEGACY)
@@ -261,7 +276,7 @@ endif(${KDE_PLATFORM_PROFILE} STREQUAL "Desktop")
 # # core apps
 if(NOT WIN32)
 #    macro_optional_add_subdirectory( kcheckpass )
-#    macro_optional_add_subdirectory( kwin )
+   ecm_optional_add_subdirectory( kwin )
 #    macro_optional_add_subdirectory( ksmserver )
 #
    find_package(JPEG REQUIRED)
@@ -313,9 +328,9 @@ if(NOT WIN32)
 #     macro_optional_add_subdirectory(cursors)
 endif(NOT WIN32)
 #
-add_subdirectory(plasma)
+ecm_optional_add_subdirectory(plasma)
 # macro_optional_add_subdirectory(statusnotifierwatcher)
-add_subdirectory(kstyles)
+ecm_optional_add_subdirectory(kstyles)
 #
 # ########### install files ###############
 if(NOT WIN32)
@@ -328,7 +343,7 @@ feature_summary(WHAT ALL INCLUDE_QUIET_PACKAGES FATAL_ON_MISSING_REQUIRED_PACKAG
 # by creating and installing a KDE4WorkspaceConfig.cmake file, which will
 # be searched and found by kdelibs/cmake/modules/FindKDE4Workspace.cmake. Alex
 
-# now create the KDE4WorkspaceConfig.cmake file, which will be loaded by 
+# now create the KDE4WorkspaceConfig.cmake file, which will be loaded by
 # kdelibs/cmake/modules/FindKDE4Workspace.cmake and which has to contain all information
 # about the libraries installed from kdebase/workspace/libs/ anybody would like to have. Alex
 
@@ -374,7 +389,9 @@ make_install_path_absolute(KDE4WORKSPACE_SERVICETYPES_DIR ${SERVICETYPES_INSTALL
 
 set(KDE4WORKSPACE_TARGET_PREFIX KDE4Workspace__)
 
-configure_file(KDE4WorkspaceConfig.cmake.in "${CMAKE_CURRENT_BINARY_DIR}/KDE4WorkspaceConfig.cmake" @ONLY)
+# this file will be installed too and will be used by cmake when searching for the Config.cmake file to check the version of kdepimlibs, Alex
+write_basic_config_version_file(${CMAKE_CURRENT_BINARY_DIR}/KDE4WorkspaceConfigVersion.cmake VERSION
+                                     ${KDE4WORKSPACE_VERSION_MAJOR}.${KDE4WORKSPACE_VERSION_MINOR}.${KDE4WORKSPACE_VERSION_PATCH} COMPATIBILITY AnyNewerVersion)
 
 set(_KDE4WorkspaceConfig_INSTALL_DIR ${LIB_INSTALL_DIR}/KDE4Workspace/cmake)
 

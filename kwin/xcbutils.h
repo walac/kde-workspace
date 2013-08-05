@@ -23,12 +23,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <kwinglobals.h>
 #include "utils.h"
 
+#include <KDE/KDebug>
+
 #include <QRect>
 #include <QRegion>
 #include <QVector>
 
 #include <xcb/xcb.h>
 #include <xcb/composite.h>
+#include <xcb/randr.h>
+#define class class_name //HACK: work around a non-C++ safe problem in xcb_iccm.h
+                         //where they put a variable called "class" in function signatures.
+                         //Needed at least for xcb v0.3.8
+#include <xcb/xcb_icccm.h>
+#undef class             //UNDO HACK
 
 namespace KWin {
 
@@ -234,6 +242,41 @@ public:
         return true;
     }
 };
+
+namespace RandR
+{
+typedef Wrapper<xcb_randr_get_screen_info_reply_t, xcb_randr_get_screen_info_cookie_t, &xcb_randr_get_screen_info_reply, &xcb_randr_get_screen_info_unchecked> ScreenInfo;
+
+class ScreenResources : public Wrapper<xcb_randr_get_screen_resources_reply_t, xcb_randr_get_screen_resources_cookie_t, &xcb_randr_get_screen_resources_reply, &xcb_randr_get_screen_resources_unchecked>
+{
+public:
+    explicit ScreenResources(WindowId window) : Wrapper<xcb_randr_get_screen_resources_reply_t, xcb_randr_get_screen_resources_cookie_t, &xcb_randr_get_screen_resources_reply, &xcb_randr_get_screen_resources_unchecked>(window) {}
+
+    inline xcb_randr_crtc_t *crtcs() {
+        if (isNull()) {
+            return nullptr;
+        }
+        return xcb_randr_get_screen_resources_crtcs(data());
+    }
+};
+
+class CrtcGamma : public Wrapper<xcb_randr_get_crtc_gamma_reply_t, xcb_randr_get_crtc_gamma_cookie_t, &xcb_randr_get_crtc_gamma_reply, &xcb_randr_get_crtc_gamma_unchecked>
+{
+public:
+    explicit CrtcGamma(xcb_randr_crtc_t c) : Wrapper<xcb_randr_get_crtc_gamma_reply_t, xcb_randr_get_crtc_gamma_cookie_t, &xcb_randr_get_crtc_gamma_reply, &xcb_randr_get_crtc_gamma_unchecked>(c) {}
+
+    inline uint16_t *red() {
+        return xcb_randr_get_crtc_gamma_red(data());
+    }
+    inline uint16_t *green() {
+        return xcb_randr_get_crtc_gamma_green(data());
+    }
+    inline uint16_t *blue() {
+        return xcb_randr_get_crtc_gamma_blue(data());
+    }
+};
+
+}
 
 class ExtensionData
 {
@@ -688,10 +731,16 @@ static inline void setInputFocus(xcb_window_t window, uint8_t revertTo, xcb_time
     xcb_set_input_focus(connection(), revertTo, window, time);
 }
 
-static inline void setTransientFor(xcb_window_t window, xcb_window_t transient_for_window)
+static inline void sync()
 {
-    xcb_change_property(connection(), XCB_PROP_MODE_REPLACE, window, XCB_ATOM_WM_TRANSIENT_FOR,
-                        XCB_ATOM_WINDOW, 32, 1, &transient_for_window);
+    auto *c = connection();
+    const auto cookie = xcb_get_input_focus(c);
+    xcb_generic_error_t *error = nullptr;
+    ScopedCPointer<xcb_get_input_focus_reply_t> sync(xcb_get_input_focus_reply(c, cookie, &error));
+    if (error) {
+        kWarning(1212) << "Sync error" << kBacktrace();
+        free(error);
+    }
 }
 
 } // namespace X11

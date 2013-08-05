@@ -44,17 +44,20 @@ InvertEffect::InvertEffect()
         m_shader(NULL),
         m_allWindows(false)
 {
+#warning Global Shortcuts need porting
+#if KWIN_QT5_PORTING
     KActionCollection* actionCollection = new KActionCollection(this);
 
-    KAction* a = (KAction*)actionCollection->addAction("Invert");
+    KAction* a = (KAction*)actionCollection->addAction(QStringLiteral("Invert"));
     a->setText(i18n("Toggle Invert Effect"));
     a->setGlobalShortcut(KShortcut(Qt::CTRL + Qt::META + Qt::Key_I));
     connect(a, SIGNAL(triggered(bool)), this, SLOT(toggleScreenInversion()));
 
-    KAction* b = (KAction*)actionCollection->addAction("InvertWindow");
+    KAction* b = (KAction*)actionCollection->addAction(QStringLiteral("InvertWindow"));
     b->setText(i18n("Toggle Invert Effect on Window"));
     b->setGlobalShortcut(KShortcut(Qt::CTRL + Qt::META + Qt::Key_U));
     connect(b, SIGNAL(triggered(bool)), this, SLOT(toggleWindow()));
+#endif
     connect(effects, SIGNAL(windowClosed(KWin::EffectWindow*)), this, SLOT(slotWindowClosed(KWin::EffectWindow*)));
 }
 
@@ -72,15 +75,15 @@ bool InvertEffect::loadData()
 {
     m_inited = true;
 
-    QString shadersDir = "kwin/shaders/1.10/";
+    QString shadersDir = QStringLiteral("kwin/shaders/1.10/");
 #ifdef KWIN_HAVE_OPENGLES
     const qint64 coreVersionNumber = kVersionNumber(3, 0);
 #else
     const qint64 coreVersionNumber = kVersionNumber(1, 40);
 #endif
     if (GLPlatform::instance()->glslVersion() >= coreVersionNumber)
-        shadersDir = "kwin/shaders/1.40/";
-    const QString fragmentshader =  KGlobal::dirs()->findResource("data", shadersDir + "invert.frag");
+        shadersDir = QStringLiteral("kwin/shaders/1.40/");
+    const QString fragmentshader =  KGlobal::dirs()->findResource("data", shadersDir + QStringLiteral("invert.frag"));
 
     m_shader = ShaderManager::instance()->loadFragmentShader(ShaderManager::GenericShader, fragmentshader);
     if (!m_shader->isValid()) {

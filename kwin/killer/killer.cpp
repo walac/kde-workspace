@@ -30,13 +30,13 @@ DEALINGS IN THE SOFTWARE.
 #include <kauth.h>
 #include <kdebug.h>
 #include <unistd.h>
-#include <X11/Xlib.h>
-#include <QX11Info>
 #include <QProcess>
 // TODO: remove with Qt 5, only for HTML escaping the caption
 #include <QTextDocument>
+#include <QWidget>
 #include <signal.h>
 #include <errno.h>
+#include <xcb/xcb.h>
 
 int main(int argc, char* argv[])
 {
@@ -52,7 +52,7 @@ int main(int argc, char* argv[])
     options.add("timestamp <time>", ki18n("Time of user action causing termination"));
     KCmdLineArgs::addCmdLineOptions(options);
     KApplication app;
-    KApplication::setWindowIcon(KIcon("kwin"));
+    KApplication::setWindowIcon(KIcon(QStringLiteral("kwin")));
     KCmdLineArgs* args = KCmdLineArgs::parsedArgs();
     QString hostname = args->getOption("hostname");
     bool pid_ok = false;
@@ -60,16 +60,16 @@ int main(int argc, char* argv[])
     QString caption = args->getOption("windowname");
     QString appname = args->getOption("applicationname");
     bool id_ok = false;
-    Window id = QString(args->getOption("wid")).toULong(&id_ok);
+    xcb_window_t id = QString(args->getOption("wid")).toULong(&id_ok);
     bool time_ok = false;
-    Time timestamp = QString(args->getOption("timestamp")).toULong(&time_ok);
+    xcb_timestamp_t timestamp = QString(args->getOption("timestamp")).toULong(&time_ok);
     args->clear();
-    if (!pid_ok || pid == 0 || !id_ok || id == None || !time_ok || timestamp == CurrentTime
+    if (!pid_ok || pid == 0 || !id_ok || id == XCB_WINDOW_NONE || !time_ok || timestamp == XCB_TIME_CURRENT_TIME
             || hostname.isEmpty() || caption.isEmpty() || appname.isEmpty()) {
         KCmdLineArgs::usageError(i18n("This helper utility is not supposed to be called directly."));
         return 1;
     }
-    bool isLocal = hostname == "localhost";
+    bool isLocal = hostname == QStringLiteral("localhost");
 
     caption = Qt::escape(caption);
     appname = Qt::escape(appname);
@@ -87,21 +87,21 @@ int main(int argc, char* argv[])
         "<para><warning>Terminating the application will close all of its child windows. Any unsaved data will be lost.</warning></para>"
         );
 
-    KGuiItem continueButton = KGuiItem(i18n("&Terminate Application %1", appname), "edit-bomb");
-    KGuiItem cancelButton = KGuiItem(i18n("Wait Longer"), "chronometer");
+    KGuiItem continueButton = KGuiItem(i18n("&Terminate Application %1", appname), QStringLiteral("edit-bomb"));
+    KGuiItem cancelButton = KGuiItem(i18n("Wait Longer"), QStringLiteral("chronometer"));
     app.updateUserTimestamp(timestamp);
-    if (KMessageBox::warningContinueCancelWId(id, question, QString(), continueButton, cancelButton) == KMessageBox::Continue) {
+    if (KMessageBox::warningContinueCancel(QWidget::find(id), question, QString(), continueButton, cancelButton) == KMessageBox::Continue) {
         if (!isLocal) {
             QStringList lst;
-            lst << hostname << "kill" << QString::number(pid);
-            QProcess::startDetached("xon", lst);
+            lst << hostname << QStringLiteral("kill") << QString::number(pid);
+            QProcess::startDetached(QStringLiteral("xon"), lst);
         } else {
             if (::kill(pid, SIGKILL) && errno == EPERM) {
-                KAuth::Action killer("org.kde.ksysguard.processlisthelper.sendsignal");
-                killer.setHelperID("org.kde.ksysguard.processlisthelper");
-                killer.addArgument("pid0", pid);
-                killer.addArgument("pidcount", 1);
-                killer.addArgument("signal", SIGKILL);
+                KAuth::Action killer(QStringLiteral("org.kde.ksysguard.processlisthelper.sendsignal"));
+                killer.setHelperId(QStringLiteral("org.kde.ksysguard.processlisthelper"));
+                killer.addArgument(QStringLiteral("pid0"), pid);
+                killer.addArgument(QStringLiteral("pidcount"), 1);
+                killer.addArgument(QStringLiteral("signal"), SIGKILL);
                 if (killer.isValid()) {
                     kDebug(1212) << "Using KAuth to kill pid: " << pid;
                     killer.execute();

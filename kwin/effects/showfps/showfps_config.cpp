@@ -29,6 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <KDE/KLocalizedString>
 #include <kdebug.h>
+#include <KDE/KAboutData>
 
 namespace KWin
 {
@@ -36,7 +37,7 @@ namespace KWin
 KWIN_EFFECT_CONFIG_FACTORY
 
 ShowFpsEffectConfig::ShowFpsEffectConfig(QWidget* parent, const QVariantList& args) :
-    KCModule(EffectFactory::componentData(), parent, args)
+    KCModule(KAboutData::pluginData(QStringLiteral("showfps")), parent, args)
 {
     m_ui = new Ui::ShowFpsEffectConfigForm;
     m_ui->setupUi(this);
@@ -54,7 +55,7 @@ ShowFpsEffectConfig::~ShowFpsEffectConfig()
 void ShowFpsEffectConfig::save()
 {
     KCModule::save();
-    EffectsHandler::sendReloadMessage("showfps");
+    EffectsHandler::sendReloadMessage(QStringLiteral("showfps"));
 }
 
 } // namespace

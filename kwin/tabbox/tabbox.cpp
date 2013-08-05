@@ -358,7 +358,7 @@ QString TabBoxClientImpl::caption() const
 QPixmap TabBoxClientImpl::icon(const QSize& size) const
 {
     if (m_client->isDesktop()) {
-        return KIcon("user-desktop").pixmap(size);
+        return KIcon(QStringLiteral("user-desktop")).pixmap(size);
     }
     return m_client->icon(size);
 }
@@ -474,12 +474,12 @@ TabBox::TabBox(QObject *parent)
     m_tabBoxMode = TabBoxDesktopMode; // init variables
     connect(&m_delayedShowTimer, SIGNAL(timeout()), this, SLOT(show()));
     connect(Workspace::self(), SIGNAL(configChanged()), this, SLOT(reconfigure()));
-    QDBusConnection::sessionBus().registerObject("/TabBox", this, QDBusConnection::ExportScriptableContents);
+    QDBusConnection::sessionBus().registerObject(QStringLiteral("/TabBox"), this, QDBusConnection::ExportScriptableContents);
 }
 
 TabBox::~TabBox()
 {
-    QDBusConnection::sessionBus().unregisterObject("/TabBox");
+    QDBusConnection::sessionBus().unregisterObject(QStringLiteral("/TabBox"));
     s_self = NULL;
 }
 
@@ -492,17 +492,17 @@ void TabBox::handlerReady()
 
 void TabBox::initShortcuts(KActionCollection* keys)
 {
-    KAction *a = NULL;
+    QAction *a = NULL;
 
     // The setGlobalShortcut(shortcut); shortcut = a->globalShortcut()
     // sequence is necessary in the case where the user has defined a
     // custom key binding which KAction::setGlobalShortcut autoloads.
     #define KEY( name, key, fnSlot, shortcut, shortcutSlot )                    \
-    a = keys->addAction( name );                                                \
+    a = keys->addAction( QStringLiteral( name ) );                              \
     a->setText( i18n(name) );                                                   \
     shortcut = KShortcut(key);                                                  \
     qobject_cast<KAction*>( a )->setGlobalShortcut(shortcut);                   \
-    shortcut = a->globalShortcut();                                             \
+    shortcut = qobject_cast<KAction*>( a )->globalShortcut();                   \
     connect(a, SIGNAL(triggered(bool)), SLOT(fnSlot));                          \
     connect(a, SIGNAL(globalShortcutChanged(QKeySequence)), SLOT(shortcutSlot));
 
@@ -734,7 +734,7 @@ void TabBox::reconfigure()
 
 #ifdef KWIN_BUILD_SCREENEDGES
     QList<ElectricBorder> *borders = &m_borderActivate;
-    QString borderConfig = "BorderActivate";
+    QString borderConfig = QStringLiteral("BorderActivate");
     for (int i = 0; i < 2; ++i) {
         foreach (ElectricBorder border, *borders) {
             ScreenEdges::self()->unreserve(border, this);
@@ -750,7 +750,7 @@ void TabBox::reconfigure()
             ScreenEdges::self()->reserve(ElectricBorder(i), this, "toggle");
         }
         borders = &m_borderAlternativeActivate;
-        borderConfig = "BorderAlternativeActivate";
+        borderConfig = QStringLiteral("BorderAlternativeActivate");
     }
 #endif
 }
@@ -813,33 +813,43 @@ void TabBox::delayedShow()
     m_delayedShowTimer.start(m_delayShowTime);
 }
 
-
-bool TabBox::handleMouseEvent(XEvent* e)
+bool TabBox::handleMouseEvent(xcb_button_press_event_t *e)
 {
-    XAllowEvents(display(), AsyncPointer, xTime());
+    xcb_allow_events(connection(), XCB_ALLOW_ASYNC_POINTER, xTime());
     if (!m_isShown && isDisplayed()) {
         // tabbox has been replaced, check effects
         if (effects && static_cast<EffectsHandlerImpl*>(effects)->checkInputWindowEvent(e))
             return true;
     }
-    if (e->type == ButtonPress) {
+    if (e->response_type & ~0x80 == XCB_BUTTON_PRESS) {
         // press outside Tabbox?
-        QPoint pos(e->xbutton.x_root, e->xbutton.y_root);
+        QPoint pos(e->root_x, e->root_y);
 
         if ((!m_isShown && isDisplayed())
                 || (!m_tabBox->containsPos(pos) &&
-                    (e->xbutton.button == Button1 || e->xbutton.button == Button2 || e->xbutton.button == Button3))) {
+                    (e->detail == XCB_BUTTON_INDEX_1 || e->detail == XCB_BUTTON_INDEX_2 || e->detail == XCB_BUTTON_INDEX_3))) {
             close();  // click outside closes tab
             return true;
         }
-        if (e->xbutton.button == Button5 || e->xbutton.button == Button4) {
+        if (e->detail == XCB_BUTTON_INDEX_5 || e->detail == XCB_BUTTON_INDEX_4) {
             // mouse wheel event
-            const QModelIndex index = m_tabBox->nextPrev(e->xbutton.button == Button5);
+            const QModelIndex index = m_tabBox->nextPrev(e->detail == XCB_BUTTON_INDEX_5);
             if (index.isValid()) {
                 setCurrentIndex(index);
             }
             return true;
         }
+    }
+    return false;
+}
+
+bool TabBox::handleMouseEvent(xcb_motion_notify_event_t *e)
+{
+    xcb_allow_events(connection(), XCB_ALLOW_ASYNC_POINTER, xTime());
+    if (!m_isShown && isDisplayed()) {
+        // tabbox has been replaced, check effects
+        if (effects && static_cast<EffectsHandlerImpl*>(effects)->checkInputWindowEvent(e))
+            return true;
     }
     return false;
 }
@@ -1479,12 +1489,12 @@ void TabBox::reject()
 /*!
   Handles alt-tab / control-tab releasing
  */
-void TabBox::keyRelease(const XKeyEvent& ev)
+void TabBox::keyRelease(const xcb_key_release_event_t *ev)
 {
     if (m_noModifierGrab) {
         return;
     }
-    unsigned int mk = ev.state &
+    unsigned int mk = ev->state &
                       (KKeyServer::modXShift() |
                        KKeyServer::modXCtrl() |
                        KKeyServer::modXAlt() |
@@ -1494,8 +1504,8 @@ void TabBox::keyRelease(const XKeyEvent& ev)
     // modifiers are released: only one modifier is active and the currently released
     // key is this modifier - if yes, release the grab
     int mod_index = -1;
-    for (int i = ShiftMapIndex;
-            i <= Mod5MapIndex;
+    for (int i = XCB_MAP_INDEX_SHIFT;
+            i <= XCB_MAP_INDEX_5;
             ++i)
         if ((mk & (1 << i)) != 0) {
             if (mod_index >= 0)
@@ -1509,7 +1519,7 @@ void TabBox::keyRelease(const XKeyEvent& ev)
         XModifierKeymap* xmk = XGetModifierMapping(display());
         for (int i = 0; i < xmk->max_keypermod; i++)
             if (xmk->modifiermap[xmk->max_keypermod * mod_index + i]
-                    == ev.keycode)
+                    == ev->detail)
                 release = true;
         XFreeModifiermap(xmk);
     }

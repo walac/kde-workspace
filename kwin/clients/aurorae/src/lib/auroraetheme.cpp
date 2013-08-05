@@ -22,6 +22,7 @@
 #include "themeconfig.h"
 // Qt
 #include <QHash>
+#include <QStandardPaths>
 // KDE
 #include <KDE/KConfig>
 #include <KDE/KConfigGroup>
@@ -63,11 +64,11 @@ AuroraeThemePrivate::~AuroraeThemePrivate()
 
 void AuroraeThemePrivate::initButtonFrame(AuroraeButtonType type)
 {
-    QString file("aurorae/themes/" + themeName + '/' + AuroraeTheme::mapButtonToName(type) + ".svg");
+    QString file(QStringLiteral("aurorae/themes/") + themeName + QStringLiteral("/") + AuroraeTheme::mapButtonToName(type) + QStringLiteral(".svg"));
     QString path = KGlobal::dirs()->findResource("data", file);
     if (path.isEmpty()) {
         // let's look for svgz
-        file.append("z");
+        file.append(QStringLiteral("z"));
         path = KGlobal::dirs()->findResource("data", file);
     }
     if (!path.isEmpty()) {
@@ -100,8 +101,8 @@ bool AuroraeTheme::isValid() const
 
 void AuroraeTheme::loadTheme(const QString &name)
 {
-    KConfig conf("auroraerc");
-    KConfig config("aurorae/themes/" + name + '/' + name + "rc", KConfig::FullConfig, "data");
+    KConfig conf(QStringLiteral("auroraerc"));
+    KConfig config(QStringLiteral("aurorae/themes/") + name + QStringLiteral("/") + name + QStringLiteral("rc"), KConfig::FullConfig, QStandardPaths::DataLocation);
     KConfigGroup themeGroup(&conf, name);
     loadTheme(name, config);
     setBorderSize((KDecorationDefines::BorderSize)themeGroup.readEntry<int>("BorderSize", KDecorationDefines::BorderNormal));
@@ -111,10 +112,10 @@ void AuroraeTheme::loadTheme(const QString &name)
 void AuroraeTheme::loadTheme(const QString &name, const KConfig &config)
 {
     d->themeName = name;
-    QString file("aurorae/themes/" + d->themeName + "/decoration.svg");
+    QString file(QStringLiteral("aurorae/themes/") + d->themeName + QStringLiteral("/decoration.svg"));
     QString path = KGlobal::dirs()->findResource("data", file);
     if (path.isEmpty()) {
-        file += 'z';
+        file += QStringLiteral("z");
         path = KGlobal::dirs()->findResource("data", file);
     }
     if (path.isEmpty()) {
@@ -407,7 +408,7 @@ QString AuroraeTheme::prototype ( ) const \
     if (hasButton( buttonType )) { \
         return d->pathes[ buttonType ]; \
     } else { \
-        return ""; \
+        return QString(); \
     } \
 }\
 

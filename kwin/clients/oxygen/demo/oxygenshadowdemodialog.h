@@ -31,12 +31,12 @@
 #include "oxygenhelper.h"
 #include "oxygenshadowcache.h"
 
-#include <KDialog>
 #include <QCheckBox>
+#include <QDialog>
 
 namespace Oxygen
 {
-    class ShadowDemoDialog: public KDialog
+    class ShadowDemoDialog: public QDialog, Ui::OxygenShadowDemoDialog
     {
 
         Q_OBJECT
@@ -50,18 +50,12 @@ namespace Oxygen
         virtual ~ShadowDemoDialog( void )
         {}
 
-        protected slots:
+        protected Q_SLOTS:
 
         //! reparse configuration
         void reparseConfiguration( void );
 
-        //! save
-        void save( void );
-
         private:
-
-        //! ui
-        Ui_ShadowDemo ui;
 
         //! helper
         Helper _helper;

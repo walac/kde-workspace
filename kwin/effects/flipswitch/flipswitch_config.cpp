@@ -26,6 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <kconfiggroup.h>
 #include <KAction>
 #include <KActionCollection>
+#include <KDE/KAboutData>
 
 #include <QVBoxLayout>
 
@@ -40,7 +41,7 @@ FlipSwitchEffectConfigForm::FlipSwitchEffectConfigForm(QWidget* parent) : QWidge
 }
 
 FlipSwitchEffectConfig::FlipSwitchEffectConfig(QWidget* parent, const QVariantList& args) :
-    KCModule(EffectFactory::componentData(), parent, args)
+    KCModule(KAboutData::pluginData(QStringLiteral("flipswitch")), parent, args)
 {
     m_ui = new FlipSwitchEffectConfigForm(this);
 
@@ -48,19 +49,22 @@ FlipSwitchEffectConfig::FlipSwitchEffectConfig(QWidget* parent, const QVariantLi
 
     layout->addWidget(m_ui);
 
+#warning Global Shortcuts need porting
+#if KWIN_QT5_PORTING
     // Shortcut config. The shortcut belongs to the component "kwin"!
     m_actionCollection = new KActionCollection(this, KComponentData("kwin"));
-    KAction* a = (KAction*)m_actionCollection->addAction("FlipSwitchCurrent");
+    KAction* a = (KAction*)m_actionCollection->addAction(QStringLiteral("FlipSwitchCurrent"));
     a->setText(i18n("Toggle Flip Switch (Current desktop)"));
     a->setGlobalShortcut(KShortcut(), KAction::ActiveShortcut);
-    KAction* b = (KAction*)m_actionCollection->addAction("FlipSwitchAll");
+    KAction* b = (KAction*)m_actionCollection->addAction(QStringLiteral("FlipSwitchAll"));
     b->setText(i18n("Toggle Flip Switch (All desktops)"));
     b->setGlobalShortcut(KShortcut(), KAction::ActiveShortcut);
 
-    m_actionCollection->setConfigGroup("FlipSwitch");
+    m_actionCollection->setConfigGroup(QStringLiteral("FlipSwitch"));
     m_actionCollection->setConfigGlobal(true);
 
     m_ui->shortcutEditor->addCollection(m_actionCollection);
+#endif
 
     addConfig(FlipSwitchConfig::self(), m_ui);
 
@@ -76,7 +80,7 @@ void FlipSwitchEffectConfig::save()
     KCModule::save();
     m_ui->shortcutEditor->save();
 
-    EffectsHandler::sendReloadMessage("flipswitch");
+    EffectsHandler::sendReloadMessage(QStringLiteral("flipswitch"));
 }
 
 

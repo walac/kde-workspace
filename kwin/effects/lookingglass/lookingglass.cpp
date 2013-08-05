@@ -57,8 +57,10 @@ LookingGlassEffect::LookingGlassEffect()
 {
     actionCollection = new KActionCollection(this);
     actionCollection->setConfigGlobal(true);
-    actionCollection->setConfigGroup("LookingGlass");
+    actionCollection->setConfigGroup(QStringLiteral("LookingGlass"));
 
+#warning Global Shortcuts need porting
+#if KWIN_QT5_PORTING
     KAction* a;
     a = static_cast< KAction* >(actionCollection->addAction(KStandardAction::ZoomIn, this, SLOT(zoomIn())));
     a->setGlobalShortcut(KShortcut(Qt::META + Qt::Key_Plus));
@@ -66,6 +68,7 @@ LookingGlassEffect::LookingGlassEffect()
     a->setGlobalShortcut(KShortcut(Qt::META + Qt::Key_Minus));
     a = static_cast< KAction* >(actionCollection->addAction(KStandardAction::ActualSize, this, SLOT(toggle())));
     a->setGlobalShortcut(KShortcut(Qt::META + Qt::Key_0));
+#endif
     connect(effects, SIGNAL(mouseChanged(QPoint,QPoint,Qt::MouseButtons,Qt::MouseButtons,Qt::KeyboardModifiers,Qt::KeyboardModifiers)),
             this, SLOT(slotMouseChanged(QPoint,QPoint,Qt::MouseButtons,Qt::MouseButtons,Qt::KeyboardModifiers,Qt::KeyboardModifiers)));
     reconfigure(ReconfigureAll);
@@ -89,7 +92,7 @@ void LookingGlassEffect::reconfigure(ReconfigureFlags)
     LookingGlassConfig::self()->readConfig();
     initialradius = LookingGlassConfig::radius();
     radius = initialradius;
-    kDebug(1212) << QString("Radius from config: %1").arg(radius) << endl;
+    kDebug(1212) << QStringLiteral("Radius from config: %1").arg(radius) << endl;
     actionCollection->readSettings();
     m_valid = loadData();
 }
@@ -116,15 +119,15 @@ bool LookingGlassEffect::loadData()
         return false;
     }
 
-    QString shadersDir = "kwin/shaders/1.10/";
+    QString shadersDir = QStringLiteral("kwin/shaders/1.10/");
 #ifdef KWIN_HAVE_OPENGLES
     const qint64 coreVersionNumber = kVersionNumber(3, 0);
 #else
     const qint64 coreVersionNumber = kVersionNumber(1, 40);
 #endif
     if (GLPlatform::instance()->glslVersion() >= coreVersionNumber)
-        shadersDir = "kwin/shaders/1.40/";
-    const QString fragmentshader =  KGlobal::dirs()->findResource("data", shadersDir + "lookingglass.frag");
+        shadersDir = QStringLiteral("kwin/shaders/1.40/");
+    const QString fragmentshader =  KGlobal::dirs()->findResource("data", shadersDir + QStringLiteral("lookingglass.frag"));
     m_shader = ShaderManager::instance()->loadFragmentShader(ShaderManager::SimpleShader, fragmentshader);
     if (m_shader->isValid()) {
         ShaderBinder binder(m_shader);

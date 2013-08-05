@@ -24,6 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <KDE/KActionCollection>
 #include <KDE/KConfigGroup>
 #include <KDE/KLocalizedString>
+#include <KDE/KShortcut>
 #include <KDE/NETRootInfo>
 
 namespace KWin {
@@ -320,7 +321,7 @@ void VirtualDesktopManager::load()
     }
     QString groupname;
     if (screen_number == 0) {
-        groupname = "Desktops";
+        groupname = QStringLiteral("Desktops");
     } else {
         groupname.sprintf("Desktops-screen-%d", screen_number);
     }
@@ -329,7 +330,7 @@ void VirtualDesktopManager::load()
     setCount(n);
     if (m_rootInfo) {
         for (int i = 1; i <= n; i++) {
-            QString s = group.readEntry(QString("Name_%1").arg(i), i18n("Desktop %1", i));
+            QString s = group.readEntry(QStringLiteral("Name_%1").arg(i), i18n("Desktop %1", i));
             m_rootInfo->setDesktopName(i, s.toUtf8().data());
             // TODO: update desktop focus chain, why?
 //         m_desktopFocusChain.value()[i-1] = i;
@@ -358,7 +359,7 @@ void VirtualDesktopManager::save()
     }
     QString groupname;
     if (screen_number == 0) {
-        groupname = "Desktops";
+        groupname = QStringLiteral("Desktops");
     } else {
         groupname.sprintf("Desktops-screen-%d", screen_number);
     }
@@ -376,11 +377,11 @@ void VirtualDesktopManager::save()
         }
 
         if (s != defaultvalue) {
-            group.writeEntry(QString("Name_%1").arg(i), s);
+            group.writeEntry(QStringLiteral("Name_%1").arg(i), s);
         } else {
-            QString currentvalue = group.readEntry(QString("Name_%1").arg(i), QString());
+            QString currentvalue = group.readEntry(QStringLiteral("Name_%1").arg(i), QString());
             if (currentvalue != defaultvalue) {
-                group.deleteEntry(QString("Name_%1").arg(i));
+                group.deleteEntry(QStringLiteral("Name_%1").arg(i));
             }
         }
     }
@@ -420,21 +421,21 @@ void VirtualDesktopManager::setNETDesktopLayout(Qt::Orientation orientation, uin
 
 void VirtualDesktopManager::initShortcuts(KActionCollection *keys)
 {
-    KAction *a = keys->addAction("Group:Desktop Switching");
+    QAction *a = keys->addAction(QStringLiteral("Group:Desktop Switching"));
     a->setText(i18n("Desktop Switching"));
     initSwitchToShortcuts(keys);
 
-    addAction(keys, "Switch to Next Desktop", i18n("Switch to Next Desktop"), SLOT(slotNext()));
-    addAction(keys, "Switch to Previous Desktop", i18n("Switch to Previous Desktop"), SLOT(slotPrevious()));
-    addAction(keys, "Switch One Desktop to the Right", i18n("Switch One Desktop to the Right"), SLOT(slotRight()));
-    addAction(keys, "Switch One Desktop to the Left", i18n("Switch One Desktop to the Left"), SLOT(slotLeft()));
-    addAction(keys, "Switch One Desktop Up", i18n("Switch One Desktop Up"), SLOT(slotUp()));
-    addAction(keys, "Switch One Desktop Down", i18n("Switch One Desktop Down"), SLOT(slotDown()));
+    addAction(keys, QStringLiteral("Switch to Next Desktop"), i18n("Switch to Next Desktop"), SLOT(slotNext()));
+    addAction(keys, QStringLiteral("Switch to Previous Desktop"), i18n("Switch to Previous Desktop"), SLOT(slotPrevious()));
+    addAction(keys, QStringLiteral("Switch One Desktop to the Right"), i18n("Switch One Desktop to the Right"), SLOT(slotRight()));
+    addAction(keys, QStringLiteral("Switch One Desktop to the Left"), i18n("Switch One Desktop to the Left"), SLOT(slotLeft()));
+    addAction(keys, QStringLiteral("Switch One Desktop Up"), i18n("Switch One Desktop Up"), SLOT(slotUp()));
+    addAction(keys, QStringLiteral("Switch One Desktop Down"), i18n("Switch One Desktop Down"), SLOT(slotDown()));
 }
 
 void VirtualDesktopManager::initSwitchToShortcuts(KActionCollection *keys)
 {
-    const QString toDesktop = "Switch to Desktop %1";
+    const QString toDesktop = QStringLiteral("Switch to Desktop %1");
     const KLocalizedString toDesktopLabel = ki18n("Switch to Desktop %1");
     addAction(keys, toDesktop, toDesktopLabel, 1, KShortcut(Qt::CTRL + Qt::Key_F1), SLOT(slotSwitchTo()));
     addAction(keys, toDesktop, toDesktopLabel, 2, KShortcut(Qt::CTRL + Qt::Key_F2), SLOT(slotSwitchTo()));
@@ -448,16 +449,20 @@ void VirtualDesktopManager::initSwitchToShortcuts(KActionCollection *keys)
 
 void VirtualDesktopManager::addAction(KActionCollection *keys, const QString &name, const KLocalizedString &label, uint value, const KShortcut &key, const char *slot)
 {
-    KAction *a = keys->addAction(name.arg(value), this, slot);
+    QAction *a = keys->addAction(name.arg(value), this, slot);
     a->setText(label.subs(value).toString());
+#if KWIN_QT5_PORTING
     a->setGlobalShortcut(key);
+#endif
     a->setData(value);
 }
 
 void VirtualDesktopManager::addAction(KActionCollection *keys, const QString &name, const QString &label, const char *slot)
 {
-    KAction *a = keys->addAction(name, this, slot);
+    QAction *a = keys->addAction(name, this, slot);
+#if KWIN_QT5_PORTING
     a->setGlobalShortcut(KShortcut());
+#endif
     a->setText(label);
 }
 

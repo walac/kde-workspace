@@ -192,8 +192,8 @@ bool Edge::handleAction()
 {
     switch (m_action) {
     case ElectricActionDashboard: { // Display Plasma dashboard
-        QDBusInterface plasmaApp("org.kde.plasma-desktop", "/App");
-        plasmaApp.asyncCall("toggleDashboard");
+        QDBusInterface plasmaApp(QStringLiteral("org.kde.plasma-desktop"), QStringLiteral("/App"));
+        plasmaApp.asyncCall(QStringLiteral("toggleDashboard"));
         return true;
     }
     case ElectricActionShowDesktop: {
@@ -201,8 +201,8 @@ bool Edge::handleAction()
         return true;
     }
     case ElectricActionLockScreen: { // Lock the screen
-        QDBusInterface screenSaver("org.kde.screensaver", "/ScreenSaver");
-        screenSaver.asyncCall("Lock");
+        QDBusInterface screenSaver(QStringLiteral("org.kde.screensaver"), QStringLiteral("/ScreenSaver"));
+        screenSaver.asyncCall(QStringLiteral("Lock"));
         return true;
     }
     default:
@@ -571,13 +571,13 @@ void ScreenEdges::init()
 static ElectricBorderAction electricBorderAction(const QString& name)
 {
     QString lowerName = name.toLower();
-    if (lowerName == "dashboard") {
+    if (lowerName == QStringLiteral("dashboard")) {
         return ElectricActionDashboard;
-    } else if (lowerName == "showdesktop") {
+    } else if (lowerName == QStringLiteral("showdesktop")) {
         return ElectricActionShowDesktop;
-    } else if (lowerName == "lockscreen") {
+    } else if (lowerName == QStringLiteral("lockscreen")) {
         return ElectricActionLockScreen;
-    } else if (lowerName == "preventscreenlocking") {
+    } else if (lowerName == QStringLiteral("preventscreenlocking")) {
         return ElectricActionPreventScreenLocking;
     }
     return ElectricActionNone;
@@ -968,36 +968,20 @@ void ScreenEdges::check(const QPoint &pos, const QDateTime &now, bool forceNoPus
     }
 }
 
-bool ScreenEdges::isEntered(XEvent* e)
+bool ScreenEdges::isEntered(xcb_enter_notify_event_t *event)
 {
-    if (e->type == EnterNotify) {
-        return handleEnterNotifiy(e->xcrossing.window,
-                                  QPoint(e->xcrossing.x_root, e->xcrossing.y_root),
-                                  QDateTime::fromMSecsSinceEpoch(e->xcrossing.time));
-    }
-    if (e->type == ClientMessage) {
-        if (e->xclient.message_type == atoms->xdnd_position) {
-            return handleDndNotify(e->xclient.window,
-                                   QPoint(e->xclient.data.l[2] >> 16, e->xclient.data.l[2] & 0xffff));
-        }
-    }
-    return false;
+    return handleEnterNotifiy(event->event,
+                              QPoint(event->root_x, event->root_y),
+                              QDateTime::fromMSecsSinceEpoch(event->time));
 }
 
-bool ScreenEdges::isEntered(xcb_generic_event_t *e)
+bool ScreenEdges::isEntered(xcb_client_message_event_t *event)
 {
-    if (e->response_type == XCB_ENTER_NOTIFY) {
-        xcb_enter_notify_event_t *event = reinterpret_cast<xcb_enter_notify_event_t*>(e);
-        return handleEnterNotifiy(event->event,
-                                  QPoint(event->root_x, event->root_y),
-                                  QDateTime::fromMSecsSinceEpoch(event->time));
+    if (event->type != atoms->xdnd_position) {
+        return false;
     }
-    if (e->response_type == XCB_CLIENT_MESSAGE) {
-        xcb_client_message_event_t *event = reinterpret_cast<xcb_client_message_event_t*>(e);
-        return handleDndNotify(event->window,
-                              QPoint(event->data.data32[2] >> 16, event->data.data32[2] & 0xffff));
-    }
-    return false;
+    return handleDndNotify(event->window,
+                           QPoint(event->data.data32[2] >> 16, event->data.data32[2] & 0xffff));
 }
 
 bool ScreenEdges::handleEnterNotifiy(xcb_window_t window, const QPoint &point, const QDateTime &timestamp)

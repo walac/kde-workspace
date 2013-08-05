@@ -31,6 +31,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <KActionCollection>
 #include <kaction.h>
 #include <KShortcutsEditor>
+#include <KDE/KAboutData>
 
 #include <QWidget>
 #include <QVBoxLayout>
@@ -46,7 +47,7 @@ LookingGlassEffectConfigForm::LookingGlassEffectConfigForm(QWidget* parent) : QW
 }
 
 LookingGlassEffectConfig::LookingGlassEffectConfig(QWidget* parent, const QVariantList& args) :
-    KCModule(EffectFactory::componentData(), parent, args)
+    KCModule(KAboutData::pluginData(QStringLiteral("lookingglass")), parent, args)
 {
     m_ui = new LookingGlassEffectConfigForm(this);
 
@@ -57,10 +58,12 @@ LookingGlassEffectConfig::LookingGlassEffectConfig(QWidget* parent, const QVaria
     addConfig(LookingGlassConfig::self(), m_ui);
     connect(m_ui->editor, SIGNAL(keyChange()), this, SLOT(changed()));
 
+#warning Global Shortcuts need porting
+#if KWIN_QT5_PORTING
     // Shortcut config. The shortcut belongs to the component "kwin"!
     m_actionCollection = new KActionCollection(this, KComponentData("kwin"));
 
-    m_actionCollection->setConfigGroup("LookingGlass");
+    m_actionCollection->setConfigGroup(QStringLiteral("LookingGlass"));
     m_actionCollection->setConfigGlobal(true);
 
     KAction* a;
@@ -77,6 +80,7 @@ LookingGlassEffectConfig::LookingGlassEffectConfig(QWidget* parent, const QVaria
     a->setGlobalShortcut(KShortcut(Qt::META + Qt::Key_0));
 
     m_ui->editor->addCollection(m_actionCollection);
+#endif
 }
 
 LookingGlassEffectConfig::~LookingGlassEffectConfig()
@@ -92,7 +96,7 @@ void LookingGlassEffectConfig::save()
 
     m_ui->editor->save();   // undo() will restore to this state from now on
 
-    EffectsHandler::sendReloadMessage("lookingglass");
+    EffectsHandler::sendReloadMessage(QStringLiteral("lookingglass"));
 }
 
 void LookingGlassEffectConfig::defaults()

@@ -26,6 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <KDE/KActionCollection>
 #include <KDE/KAction>
+#include <KDE/KAboutData>
 #include <KDE/KShortcutsEditor>
 
 #include <QWidget>
@@ -41,7 +42,7 @@ MouseClickEffectConfigForm::MouseClickEffectConfigForm(QWidget* parent) : QWidge
 }
 
 MouseClickEffectConfig::MouseClickEffectConfig(QWidget* parent, const QVariantList& args) :
-    KCModule(EffectFactory::componentData(), parent, args)
+    KCModule(KAboutData::pluginData(QStringLiteral("mouseclick")), parent, args)
 {
     m_ui = new MouseClickEffectConfigForm(this);
 
@@ -50,15 +51,18 @@ MouseClickEffectConfig::MouseClickEffectConfig(QWidget* parent, const QVariantLi
 
     connect(m_ui->editor, SIGNAL(keyChange()), this, SLOT(changed()));
 
+#warning Global Shortcuts need porting
+#if KWIN_QT5_PORTING
     // Shortcut config. The shortcut belongs to the component "kwin"!
     m_actionCollection = new KActionCollection(this, KComponentData("kwin"));
 
-    KAction* a = static_cast<KAction*>(m_actionCollection->addAction("ToggleMouseClick"));
+    KAction* a = static_cast<KAction*>(m_actionCollection->addAction(QStringLiteral("ToggleMouseClick")));
     a->setText(i18n("Toggle Effect"));
     a->setProperty("isConfigurationAction", true);
     a->setGlobalShortcut(KShortcut(Qt::META + Qt::Key_Asterisk));
 
     m_ui->editor->addCollection(m_actionCollection);
+#endif
 
     addConfig(MouseClickConfig::self(), m_ui);
     load();
@@ -74,7 +78,7 @@ void MouseClickEffectConfig::save()
 {
     KCModule::save();
     m_ui->editor->save();   // undo() will restore to this state from now on
-    EffectsHandler::sendReloadMessage("mouseclick");
+    EffectsHandler::sendReloadMessage(QStringLiteral("mouseclick"));
 }
 
 } // namespace

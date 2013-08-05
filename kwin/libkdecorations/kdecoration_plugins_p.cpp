@@ -46,7 +46,7 @@ KDecorationPlugins::KDecorationPlugins(const KSharedConfigPtr &cfg)
         fact(NULL),
         old_library(NULL),
         old_fact(NULL),
-        pluginStr("kwin3_undefined "),
+        pluginStr(QStringLiteral("kwin3_undefined ")),
         config(cfg)
 {
 }
@@ -75,7 +75,7 @@ bool KDecorationPlugins::reset(unsigned long changed)
     QString oldPlugin = pluginStr;
     config->reparseConfiguration();
     bool ret = false;
-    if ((!loadPlugin("") && library)     // "" = read the one in cfg file
+    if ((!loadPlugin(QString()) && library)     // "" = read the one in cfg file
             || oldPlugin == pluginStr) {
         // no new plugin loaded, reset the old one
 //       assert( fact != NULL );
@@ -119,7 +119,7 @@ bool KDecorationPlugins::canLoad(QString nameStr, KLibrary **loadedLib)
         return true;
     }
 
-    KConfigGroup group(config, QString("Style"));
+    KConfigGroup group(config, QStringLiteral("Style"));
     if (group.readEntry<bool>("NoPlugin", false)) {
         error(i18n("Loading of window decoration plugin library disabled in configuration."));
         return false;
@@ -159,19 +159,6 @@ bool KDecorationPlugins::canLoad(QString nameStr, KLibrary **loadedLib)
     if (version_func) {
         vptr = (int(*)())version_func;
         deco_version = vptr();
-    } else {
-        // block some decos known to link the unstable API but (for now) let through other legacy stuff
-        const bool isLegacyStableABI = !(nameStr.contains("qtcurve", Qt::CaseInsensitive) ||
-                                         nameStr.contains("crystal", Qt::CaseInsensitive) ||
-                                         nameStr.contains("oxygen", Qt::CaseInsensitive));
-        if (isLegacyStableABI) {
-            // it's an old build of a legacy decoration that very likely uses the stable API
-            // so we just set the API version to the current one
-            // TODO: remove for 4.9.x or 4.10 - this is just to cover recompiles
-            deco_version = KWIN_DECORATION_API_VERSION;
-        }
-        kWarning(1212) << QString("****** The library %1 has no API version ******").arg(path);
-        kWarning(1212) << "****** Please use the KWIN_DECORATION macro in extern \"C\" to get this decoration loaded in future versions of kwin";
     }
     if (deco_version != KWIN_DECORATION_API_VERSION) {
         if (version_func)
@@ -205,7 +192,7 @@ bool KDecorationPlugins::canLoad(QString nameStr, KLibrary **loadedLib)
 // returns true if plugin was loaded successfully
 bool KDecorationPlugins::loadPlugin(QString nameStr)
 {
-    KConfigGroup group(config, QString("Style"));
+    KConfigGroup group(config, QStringLiteral("Style"));
     if (nameStr.isEmpty()) {
         nameStr = group.readEntry("PluginLib", defaultPlugin);
     }
@@ -251,6 +238,8 @@ bool KDecorationPlugins::loadPlugin(QString nameStr)
     pluginStr = nameStr;
 
     // For clients in kdeartwork
+#warning insertCatalog needs porting
+#if KWIN_QT5_PORTING
     QString catalog = nameStr;
     catalog.replace("kwin3_", "kwin_");
     KGlobal::locale()->insertCatalog(catalog);
@@ -260,6 +249,7 @@ bool KDecorationPlugins::loadPlugin(QString nameStr)
     KGlobal::locale()->insertCatalog("kwin_clients");
     // For clients in kdeartwork
     KGlobal::locale()->insertCatalog("kwin_art_clients");
+#endif
 
     old_library = oldLibrary; // save for delayed destroying
     old_fact = oldFactory;

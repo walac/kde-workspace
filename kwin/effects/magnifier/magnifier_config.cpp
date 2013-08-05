@@ -30,6 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <KActionCollection>
 #include <kaction.h>
 #include <KShortcutsEditor>
+#include <KDE/KAboutData>
 
 #include <QWidget>
 #include <QVBoxLayout>
@@ -45,7 +46,7 @@ MagnifierEffectConfigForm::MagnifierEffectConfigForm(QWidget* parent) : QWidget(
 }
 
 MagnifierEffectConfig::MagnifierEffectConfig(QWidget* parent, const QVariantList& args) :
-    KCModule(EffectFactory::componentData(), parent, args)
+    KCModule(KAboutData::pluginData(QStringLiteral("magnifier")), parent, args)
 {
     m_ui = new MagnifierEffectConfigForm(this);
 
@@ -57,10 +58,12 @@ MagnifierEffectConfig::MagnifierEffectConfig(QWidget* parent, const QVariantList
 
     connect(m_ui->editor, SIGNAL(keyChange()), this, SLOT(changed()));
 
+#warning Global Shortcuts need porting
+#if KWIN_QT5_PORTING
     // Shortcut config. The shortcut belongs to the component "kwin"!
     m_actionCollection = new KActionCollection(this, KComponentData("kwin"));
 
-    m_actionCollection->setConfigGroup("Magnifier");
+    m_actionCollection->setConfigGroup(QStringLiteral("Magnifier"));
     m_actionCollection->setConfigGlobal(true);
 
     KAction* a;
@@ -77,6 +80,7 @@ MagnifierEffectConfig::MagnifierEffectConfig(QWidget* parent, const QVariantList
     a->setGlobalShortcut(KShortcut(Qt::META + Qt::Key_0));
 
     m_ui->editor->addCollection(m_actionCollection);
+#endif
     load();
 }
 
@@ -92,7 +96,7 @@ void MagnifierEffectConfig::save()
 
     m_ui->editor->save();   // undo() will restore to this state from now on
     KCModule::save();
-    EffectsHandler::sendReloadMessage("magnifier");
+    EffectsHandler::sendReloadMessage(QStringLiteral("magnifier"));
 }
 
 void MagnifierEffectConfig::defaults()

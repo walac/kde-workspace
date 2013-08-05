@@ -27,6 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <kaction.h>
 #include <KDE/KLocalizedString>
 #include <kconfiggroup.h>
+#include <KDE/KAboutData>
 
 namespace KWin
 {
@@ -38,19 +39,22 @@ WindowGeometryConfigForm::WindowGeometryConfigForm(QWidget* parent) : QWidget(pa
 }
 
 WindowGeometryConfig::WindowGeometryConfig(QWidget* parent, const QVariantList& args)
-    : KCModule(KWin::EffectFactory::componentData(), parent, args)
+    : KCModule(KAboutData::pluginData(QStringLiteral("windowgeometry")), parent, args)
 {
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->addWidget(myUi = new WindowGeometryConfigForm(this));
 
+#warning Global Shortcuts need porting
+#if KWIN_QT5_PORTING
     // Shortcut config. The shortcut belongs to the component "kwin"!
     myActionCollection = new KActionCollection(this, KComponentData("kwin"));
-    KAction* a = (KAction*)myActionCollection->addAction("WindowGeometry");
+    KAction* a = (KAction*)myActionCollection->addAction(QStringLiteral("WindowGeometry"));
     a->setText(i18n("Toggle KWin composited geometry display"));
     a->setProperty("isConfigurationAction", true);
     a->setGlobalShortcut(KShortcut(Qt::CTRL + Qt::SHIFT + Qt::Key_F11));
 
     myUi->shortcuts->addCollection(myActionCollection);
+#endif
     connect(myUi->shortcuts,    SIGNAL(keyChange()), this, SLOT(changed()));
 
     addConfig(WindowGeometryConfiguration::self(), myUi);
@@ -68,7 +72,7 @@ void WindowGeometryConfig::save()
 {
     KCModule::save();
     myUi->shortcuts->save();   // undo() will restore to this state from now on
-    EffectsHandler::sendReloadMessage("windowgeometry");
+    EffectsHandler::sendReloadMessage(QStringLiteral("windowgeometry"));
 }
 
 void WindowGeometryConfig::defaults()

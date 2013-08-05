@@ -115,9 +115,11 @@ QScriptValue globalShortcut(QScriptContext *context, QScriptEngine *engine)
         return engine->undefinedValue();
     }
     KActionCollection* actionCollection = new KActionCollection(script);
-    KAction* a = (KAction*)actionCollection->addAction(context->argument(0).toString());
+    QAction* a = actionCollection->addAction(context->argument(0).toString());
     a->setText(context->argument(1).toString());
+#if KWIN_QT5_PORTING
     a->setGlobalShortcut(KShortcut(context->argument(2).toString()));
+#endif
     script->registerShortcut(a, context->argument(3));
     return engine->newVariant(true);
 }
@@ -262,21 +264,21 @@ inline void registerGlobalShortcutFunction(QObject *parent, QScriptEngine *engin
 {
     QScriptValue shortcutFunc = engine->newFunction(function);
     shortcutFunc.setData(engine->newQObject(parent));
-    engine->globalObject().setProperty("registerShortcut", shortcutFunc);
+    engine->globalObject().setProperty(QStringLiteral("registerShortcut"), shortcutFunc);
 }
 
 inline void registerScreenEdgeFunction(QObject *parent, QScriptEngine *engine, QScriptEngine::FunctionSignature function)
 {
     QScriptValue shortcutFunc = engine->newFunction(function);
     shortcutFunc.setData(engine->newQObject(parent));
-    engine->globalObject().setProperty("registerScreenEdge", shortcutFunc);
+    engine->globalObject().setProperty(QStringLiteral("registerScreenEdge"), shortcutFunc);
 }
 
 inline void regesterUserActionsMenuFunction(QObject *parent, QScriptEngine *engine, QScriptEngine::FunctionSignature function)
 {
     QScriptValue shortcutFunc = engine->newFunction(function);
     shortcutFunc.setData(engine->newQObject(parent));
-    engine->globalObject().setProperty("registerUserActionsMenu", shortcutFunc);
+    engine->globalObject().setProperty(QStringLiteral("registerUserActionsMenu"), shortcutFunc);
 }
 
 } // namespace KWin

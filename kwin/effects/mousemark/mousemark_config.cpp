@@ -29,6 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <kdebug.h>
 #include <KActionCollection>
 #include <kaction.h>
+#include <KDE/KAboutData>
 #include <KShortcutsEditor>
 
 #include <QWidget>
@@ -44,7 +45,7 @@ MouseMarkEffectConfigForm::MouseMarkEffectConfigForm(QWidget* parent) : QWidget(
 }
 
 MouseMarkEffectConfig::MouseMarkEffectConfig(QWidget* parent, const QVariantList& args) :
-    KCModule(EffectFactory::componentData(), parent, args)
+    KCModule(KAboutData::pluginData(QStringLiteral("mousemark")), parent, args)
 {
     m_ui = new MouseMarkEffectConfigForm(this);
 
@@ -56,20 +57,23 @@ MouseMarkEffectConfig::MouseMarkEffectConfig(QWidget* parent, const QVariantList
 
     addConfig(MouseMarkConfig::self(), m_ui);
 
+#warning Global Shortcuts need porting
+#if KWIN_QT5_PORTING
     // Shortcut config. The shortcut belongs to the component "kwin"!
     m_actionCollection = new KActionCollection(this, KComponentData("kwin"));
 
-    KAction* a = static_cast< KAction* >(m_actionCollection->addAction("ClearMouseMarks"));
+    KAction* a = static_cast< KAction* >(m_actionCollection->addAction(QStringLiteral("ClearMouseMarks")));
     a->setText(i18n("Clear Mouse Marks"));
     a->setProperty("isConfigurationAction", true);
     a->setGlobalShortcut(KShortcut(Qt::SHIFT + Qt::META + Qt::Key_F11));
 
-    a = static_cast< KAction* >(m_actionCollection->addAction("ClearLastMouseMark"));
+    a = static_cast< KAction* >(m_actionCollection->addAction(QStringLiteral("ClearLastMouseMark")));
     a->setText(i18n("Clear Last Mouse Mark"));
     a->setProperty("isConfigurationAction", true);
     a->setGlobalShortcut(KShortcut(Qt::SHIFT + Qt::META + Qt::Key_F12));
 
     m_ui->editor->addCollection(m_actionCollection);
+#endif
 
     load();
 }
@@ -88,7 +92,7 @@ void MouseMarkEffectConfig::save()
     m_actionCollection->writeSettings();
     m_ui->editor->save();   // undo() will restore to this state from now on
 
-    EffectsHandler::sendReloadMessage("mousemark");
+    EffectsHandler::sendReloadMessage(QStringLiteral("mousemark"));
 }
 
 } // namespace

@@ -45,7 +45,7 @@ public:
 private:
     friend class Compositor;
     bool owning;
-private slots:
+private Q_SLOTS:
     void looseOwnership();
 };
 
@@ -273,13 +273,6 @@ private Q_SLOTS:
 private:
     void setCompositeTimer();
     bool windowRepaintsPending() const;
-
-    /**
-     * Restarts the Window Manager in case that the Qt's GraphicsSystem need to be changed
-     * for the chosen Compositing backend.
-     * @param reason The reason why the Window Manager is being restarted, this is logged
-     **/
-    void restartKWin(const QString &reason);
 
     /**
      * Whether the Compositor is currently suspended, 8 bits encoding the reason

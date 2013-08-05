@@ -34,17 +34,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // Qt
 #include <QPixmap>
 // X
-#ifdef HAVE_XSYNC
-#include <X11/extensions/sync.h>
-#endif
 #include <X11/Xutil.h>
 #include <fixx11h.h>
+#include <xcb/sync.h>
 
 // TODO: Cleanup the order of things in this .h file
 
 class QTimer;
 class KStartupInfoData;
 class KStartupInfoId;
+
+struct xcb_sync_alarm_notify_event_t;
 
 namespace KWin
 {
@@ -312,11 +312,9 @@ public:
     virtual QSize clientSize() const;
     QPoint inputPos() const { return input_offset; } // Inside of geometry()
 
-    bool windowEvent(XEvent* e);
+    bool windowEvent(xcb_generic_event_t *e);
     virtual bool eventFilter(QObject* o, QEvent* e);
-#ifdef HAVE_XSYNC
-    void syncEvent(XSyncAlarmNotifyEvent* e);
-#endif
+    void syncEvent(xcb_sync_alarm_notify_event_t* e);
     NET::WindowType windowType(bool direct = false, int supported_types = 0) const;
 
     bool manage(xcb_window_t w, bool isMapped);
@@ -647,11 +645,13 @@ public:
     template <typename T>
     void print(T &stream) const;
 
-public slots:
+    void cancelFocusOutTimer();
+
+public Q_SLOTS:
     void closeWindow();
     void updateCaption();
 
-private slots:
+private Q_SLOTS:
     void autoRaise();
     void shadeHover();
     void shadeUnhover();
@@ -670,16 +670,16 @@ private:
     void updateCursor();
 
     // Handlers for X11 events
-    bool mapRequestEvent(XMapRequestEvent* e);
-    void unmapNotifyEvent(XUnmapEvent* e);
-    void destroyNotifyEvent(XDestroyWindowEvent* e);
-    void configureRequestEvent(XConfigureRequestEvent* e);
-    virtual void propertyNotifyEvent(XPropertyEvent* e);
-    void clientMessageEvent(XClientMessageEvent* e);
-    void enterNotifyEvent(XCrossingEvent* e);
-    void leaveNotifyEvent(XCrossingEvent* e);
-    void focusInEvent(XFocusInEvent* e);
-    void focusOutEvent(XFocusOutEvent* e);
+    bool mapRequestEvent(xcb_map_request_event_t *e);
+    void unmapNotifyEvent(xcb_unmap_notify_event_t *e);
+    void destroyNotifyEvent(xcb_destroy_notify_event_t *e);
+    void configureRequestEvent(xcb_configure_request_event_t *e);
+    virtual void propertyNotifyEvent(xcb_property_notify_event_t *e) override;
+    void clientMessageEvent(xcb_client_message_event_t *e);
+    void enterNotifyEvent(xcb_enter_notify_event_t *e);
+    void leaveNotifyEvent(xcb_leave_notify_event_t *e);
+    void focusInEvent(xcb_focus_in_event_t *e);
+    void focusOutEvent(xcb_focus_out_event_t *e);
     virtual void damageNotifyEvent();
 
     bool buttonPressEvent(xcb_window_t w, int button, int state, int x, int y, int x_root, int y_root);
@@ -696,7 +696,7 @@ protected:
     virtual void debug(QDebug& stream) const;
     virtual bool shouldUnredirect() const;
 
-private slots:
+private Q_SLOTS:
     void delayedSetShortcut();
     void performMoveResize();
     void removeSyncSupport();
@@ -706,7 +706,7 @@ private slots:
     //Signals make an excellent way for communication
     //in between objects as compared to simple function
     //calls
-signals:
+Q_SIGNALS:
     void clientManaging(KWin::Client*);
     void clientFullScreenSet(KWin::Client*, bool, bool);
     void clientMaximizedStateChanged(KWin::Client*, KDecorationDefines::MaximizeMode);
@@ -953,15 +953,13 @@ private:
     QRect geom_before_block;
     QRect deco_rect_before_block;
     bool shade_geometry_change;
-#ifdef HAVE_XSYNC
     struct {
-        XSyncCounter counter;
-        XSyncValue value;
-        XSyncAlarm alarm;
+        xcb_sync_counter_t counter;
+        xcb_sync_int64_t value;
+        xcb_sync_alarm_t alarm;
         QTimer *timeout, *failsafeTimeout;
         bool isPending;
     } syncRequest;
-#endif
     int border_left, border_right, border_top, border_bottom;
     int padding_left, padding_right, padding_top, padding_bottom;
     QRegion _mask;
@@ -991,6 +989,8 @@ private:
 #endif
     Xcb::Window m_decoInputExtent;
     QPoint input_offset;
+
+    QTimer *m_focusOutTimer;
 };
 
 /**

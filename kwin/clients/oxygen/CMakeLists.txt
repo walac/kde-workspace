@@ -1,9 +1,10 @@
 ########### add version number into compilation defines
 # FIXME: CPACK_PACKAGE_VERSION_* are empty
-add_definitions ( -DAPP_VERSION=\\\"${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}\\\")
-add_subdirectory( config )
-add_subdirectory( demo )
-add_subdirectory( data )
+add_definitions (-DAPP_VERSION=\\\"${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}\\\")
+add_definitions( -DHAVE_X11=${X11_FOUND} )
+add_subdirectory(config)
+add_subdirectory(demo)
+add_subdirectory(data)
 
 include_directories(${KDEBASE_WORKSPACE_SOURCE_DIR}/libs/oxygen)
 
@@ -24,9 +25,16 @@ kde4_add_kcfg_files(kwin_oxygen_SRCS oxygenconfiguration.kcfgc )
 kde4_add_plugin(kwin3_oxygen ${kwin_oxygen_SRCS})
 target_link_libraries(
     kwin3_oxygen
-    ${KDE4_KDEUI_LIBS}
+    KF5::KConfigWidgets
+    KF5::KGuiAddons
+    KF5::KI18n
+    KF5::KWidgets
+    KF5::KWindowSystem
+    ${KDE4_KDEUI_LIBRARY} # KStyle
+    ${Qt5Widgets_LIBRARIES}
+    ${Qt5X11Extras_LIBRARIES}
     ${X11_X11_LIB}
-    ${X11_Xrender_LIB}
+    ${XCB_XCB_LIBRARIES}
     kdecorations
     oxygenstyle
   )

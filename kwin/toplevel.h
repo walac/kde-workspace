@@ -306,7 +306,7 @@ public:
      */
     void getDamageRegionReply();
 
-signals:
+Q_SIGNALS:
     void opacityChanged(KWin::Toplevel* toplevel, qreal oldOpacity);
     void damaged(KWin::Toplevel* toplevel, const QRect& damage);
     void propertyNotify(KWin::Toplevel* toplevel, long a);
@@ -348,7 +348,7 @@ protected:
     virtual ~Toplevel();
     void setWindowHandles(Window client, Window frame);
     void detectShape(Window id);
-    virtual void propertyNotifyEvent(XPropertyEvent* e);
+    virtual void propertyNotifyEvent(xcb_property_notify_event_t *e);
     virtual void damageNotifyEvent();
     void discardWindowPixmap();
     void addDamageFull();

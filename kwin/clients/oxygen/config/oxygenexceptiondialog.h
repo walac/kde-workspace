@@ -28,9 +28,6 @@
 #include "ui_oxygenexceptiondialog.h"
 #include "../oxygendecorationdefines.h"
 
-#include <KDialog>
-#include <KLineEdit>
-#include <KComboBox>
 #include <QCheckBox>
 #include <QMap>
 
@@ -40,7 +37,7 @@ namespace Oxygen
     class DetectDialog;
 
     //! oxygen exceptions list
-    class ExceptionDialog: public KDialog
+    class ExceptionDialog: public QDialog, Ui::OxygenExceptionDialog
     {
 
         Q_OBJECT
@@ -64,7 +61,7 @@ namespace Oxygen
         virtual bool isChanged( void ) const
         { return _changed; }
 
-        signals:
+        Q_SIGNALS:
 
         //! emmited when changed
         void changed( bool );
@@ -78,12 +75,12 @@ namespace Oxygen
             emit changed( value );
         }
 
-        protected slots:
+        protected Q_SLOTS:
 
         //! check whether configuration is changed and emit appropriate signal if yes
         virtual void updateChanged();
 
-        private slots:
+        private Q_SLOTS:
 
         //! select window properties from grabbed pointers
         void selectWindowProperties( void );
@@ -92,8 +89,6 @@ namespace Oxygen
         void readWindowProperties( bool );
 
         private:
-
-        Ui_OxygenExceptionWidget ui;
 
         //! map mask and checkbox
         typedef QMap< ExceptionMask, QCheckBox*> CheckBoxMap;

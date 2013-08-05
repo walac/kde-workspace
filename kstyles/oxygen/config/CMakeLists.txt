@@ -21,16 +21,9 @@ add_library(kstyle_oxygen_config
     ${kstyle_oxygen_config_PART_FORMS_HEADERS}
 )
 
-qt5_use_modules( kstyle_oxygen_config
-    Core
-    Gui
-    Widgets
-    DBus
-)
+target_link_libraries(kstyle_oxygen_config Qt5::Core Qt5::Gui Qt5::Widgets Qt5::DBus)
 
-target_link_libraries( kstyle_oxygen_config oxygenstyleconfig )
-
-target_link_libraries( kstyle_oxygen_config
+target_link_libraries(kstyle_oxygen_config
   ${KConfig_LIBRARIES}
   ${KCompletion_LIBRARIES}
   ${KGuiAddons_LIBRARIES}
@@ -38,21 +31,25 @@ target_link_libraries( kstyle_oxygen_config
   ${KI18n_LIBRARIES}
 )
 
+target_link_libraries(kstyle_oxygen_config oxygenstyleconfig)
+
 install(TARGETS kstyle_oxygen_config DESTINATION ${QT_PLUGIN_INSTALL_DIR}/kf5 )
 
 ########### next target ###############
-set( oxygen_settings_SOURCES
+set(oxygen_settings_SOURCES
     oxygenconfigdialog.cpp
     main.cpp)
 
-add_executable( oxygen-settings ${oxygen_settings_SOURCES} )
+set(oxygen_settings_FORMS ui/oxygenconfigdialog.ui)
 
-qt5_use_modules( oxygen-settings
-    Core
-    Gui
-    Widgets
+qt5_wrap_ui(oxygen_settings_FORMS_HEADERS ${oxygen_settings_FORMS})
+
+add_executable(oxygen-settings
+    ${oxygen_settings_SOURCES}
+    ${oxygen_settings_FORMS_HEADERS}
 )
 
+target_link_libraries(oxygen-settings Qt5::Core Qt5::Gui Qt5::Widgets)
 target_link_libraries(oxygen-settings
     ${KConfig_LIBRARIES}
     ${KService_LIBRARIES}

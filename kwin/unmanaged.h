@@ -34,7 +34,7 @@ class Unmanaged
     Q_OBJECT
 public:
     explicit Unmanaged();
-    bool windowEvent(XEvent* e);
+    bool windowEvent(xcb_generic_event_t *e);
     void release(bool on_shutdown = false);
     bool track(Window w);
     static void deleteUnmanaged(Unmanaged* c);
@@ -53,9 +53,7 @@ protected:
 private:
     virtual ~Unmanaged(); // use release()
     // handlers for X11 events
-    void mapNotifyEvent(XMapEvent* e);
-    void unmapNotifyEvent(XUnmapEvent*e);
-    void configureNotifyEvent(XConfigureEvent* e);
+    void configureNotifyEvent(xcb_configure_notify_event_t *e);
 };
 
 } // namespace

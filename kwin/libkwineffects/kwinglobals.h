@@ -21,18 +21,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef KWIN_LIB_KWINGLOBALS_H
 #define KWIN_LIB_KWINGLOBALS_H
 
-#include <QX11Info>
+#include <QtX11Extras/QX11Info>
 
 #include <kdemacros.h>
 
 #include <X11/Xlib.h>
-#include <X11/Xlib-xcb.h>
 #include <fixx11h.h>
 #include <xcb/xcb.h>
 
 #include <kwinconfig.h>
 
 #define KWIN_EXPORT KDE_EXPORT
+#define KWIN_QT5_PORTING 0
 
 namespace KWin
 {
@@ -118,7 +118,11 @@ enum KWinOption {
 inline
 KWIN_EXPORT Display* display()
 {
-    return QX11Info::display();
+    static Display *s_display = nullptr;
+    if (!s_display) {
+        s_display = QX11Info::display();
+    }
+    return s_display;
 }
 
 inline
@@ -126,7 +130,7 @@ KWIN_EXPORT xcb_connection_t *connection()
 {
     static xcb_connection_t *s_con = NULL;
     if (!s_con) {
-        s_con = XGetXCBConnection(display());
+        s_con = QX11Info::connection();
     }
     return s_con;
 }
@@ -134,7 +138,11 @@ KWIN_EXPORT xcb_connection_t *connection()
 inline
 KWIN_EXPORT xcb_window_t rootWindow()
 {
-    return QX11Info::appRootWindow();
+    static xcb_window_t s_rootWindow = XCB_WINDOW_NONE;
+    if (s_rootWindow == XCB_WINDOW_NONE) {
+        s_rootWindow = QX11Info::appRootWindow();
+    }
+    return s_rootWindow;
 }
 
 inline
@@ -189,11 +197,6 @@ class KWIN_EXPORT Extensions
 {
 public:
     static void init();
-    static bool nonNativePixmaps() {
-        return non_native_pixmaps;
-    }
-private:
-    static bool non_native_pixmaps;
 };
 
 } // namespace

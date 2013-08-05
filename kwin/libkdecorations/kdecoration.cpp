@@ -32,7 +32,6 @@ DEALINGS IN THE SOFTWARE.
 #include <assert.h>
 #include <X11/Xlib.h>
 #include <fixx11h.h>
-#include <QX11Info>
 
 #include "kdecorationfactory.h"
 #include "kdecorationbridge.h"
@@ -532,7 +531,7 @@ KDecorationDefines::Position KDecoration::titlebarPosition()
 
 QString KDecorationDefines::tabDragMimeType()
 {
-    return "text/ClientGroupItem";
+    return QStringLiteral("text/ClientGroupItem");
 }
 
 KDecorationOptions::KDecorationOptions()
@@ -593,7 +592,7 @@ QString KDecorationOptions::titleButtonsLeft() const
 
 QString KDecorationOptions::defaultTitleButtonsLeft()
 {
-    return "MS";
+    return QStringLiteral("MS");
 }
 
 QString KDecorationOptions::titleButtonsRight() const
@@ -603,7 +602,7 @@ QString KDecorationOptions::titleButtonsRight() const
 
 QString KDecorationOptions::defaultTitleButtonsRight()
 {
-    return "HIAX";
+    return QStringLiteral("HIAX");
 }
 
 bool KDecorationOptions::showTooltips() const

@@ -24,9 +24,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <kapplication.h>
 #include <KDE/KSelectionWatcher>
+// Qt
+#include <QAbstractNativeEventFilter>
 
 namespace KWin
 {
+
+class XcbEventFilter : public QAbstractNativeEventFilter
+{
+public:
+    virtual bool nativeEventFilter(const QByteArray &eventType, void *message, long int *result) override;
+};
 
 class KWinSelectionOwner
     : public KSelectionOwner
@@ -35,8 +43,8 @@ class KWinSelectionOwner
 public:
     explicit KWinSelectionOwner(int screen);
 protected:
-    virtual bool genericReply(Atom target, Atom property, Window requestor);
-    virtual void replyTargets(Atom property, Window requestor);
+    virtual bool genericReply(xcb_atom_t target, xcb_atom_t property, xcb_window_t requestor);
+    virtual void replyTargets(xcb_atom_t property, xcb_window_t requestor);
     virtual void getAtoms();
 private:
     Atom make_selection_atom(int screen);
@@ -51,16 +59,16 @@ public:
     ~Application();
 
 protected:
-    bool x11EventFilter(XEvent*);
     bool notify(QObject* o, QEvent* e);
     static void crashHandler(int signal);
 
-private slots:
+private Q_SLOTS:
     void lostSelection();
     void resetCrashesCount();
 
 private:
     KWinSelectionOwner owner;
+    QScopedPointer<XcbEventFilter> m_eventFilter;
     static int crashes;
 };
 

@@ -36,14 +36,11 @@
 #include "../oxygenexceptionlist.h"
 
 #include <QTextStream>
-#include <QtDBus/QDBusConnection>
-#include <QtDBus/QDBusMessage>
+#include <QDBusConnection>
+#include <QDBusMessage>
 
-#include <KAboutData>
-#include <KAboutApplicationDialog>
 #include <KConfigGroup>
-#include <KGlobal>
-#include <KLocale>
+#include <KLocalizedString>
 
 //_______________________________________________________________________
 extern "C"
@@ -60,11 +57,8 @@ namespace Oxygen
         QObject( parent )
     {
 
-        // cataloh
-        KGlobal::locale()->insertCatalog("kwin_clients");
-
         // configuration
-        _configuration = KSharedConfig::openConfig( "oxygenrc" );
+        _configuration = KSharedConfig::openConfig( QStringLiteral( "oxygenrc" ) );
 
         _configWidget = new ConfigWidget( parent );
 
@@ -146,7 +140,7 @@ namespace Oxygen
         // sync configuration
         _configuration->sync();
 
-        QDBusMessage message( QDBusMessage::createSignal("/OxygenWindeco",  "org.kde.Oxygen.Style", "reparseConfiguration") );
+        QDBusMessage message( QDBusMessage::createSignal( QStringLiteral( "/OxygenWindeco" ),  QStringLiteral( "org.kde.Oxygen.Style" ), QStringLiteral( "reparseConfiguration") ) );
         QDBusConnection::sessionBus().send(message);
 
     }

@@ -18,6 +18,7 @@ set( oxygen_demo_SOURCES
 set( oxygen_demo_FORMS
     ui/oxygenbenchmarkwidget.ui
     ui/oxygenbuttondemowidget.ui
+    ui/oxygendemodialog.ui
     ui/oxygenframedemowidget.ui
     ui/oxygeninputdemowidget.ui
     ui/oxygenlistdemowidget.ui
@@ -33,11 +34,7 @@ add_executable( oxygen-demo
     ${oxygen_demo_FORMS_HEADERS}
  )
 
-qt5_use_modules( oxygen-demo
-    Core
-    Gui
-    Widgets
-)
+target_link_libraries( oxygen-demo Qt5::Core Qt5::Gui Qt5::Widgets )
 
 target_link_libraries(oxygen-demo
     ${KCompletion_LIBRARIES}
@@ -48,4 +45,4 @@ target_link_libraries(oxygen-demo
 )
 
 ########### install files ###############
-install (TARGETS oxygen-demo ${INSTALL_TARGETS_DEFAULT_ARGS} )
+install(TARGETS oxygen-demo ${INSTALL_TARGETS_DEFAULT_ARGS} )

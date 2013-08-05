@@ -27,6 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <kconfiggroup.h>
 #include <KActionCollection>
 #include <kaction.h>
+#include <KDE/KAboutData>
 
 #include <QVBoxLayout>
 
@@ -41,7 +42,7 @@ PresentWindowsEffectConfigForm::PresentWindowsEffectConfigForm(QWidget* parent) 
 }
 
 PresentWindowsEffectConfig::PresentWindowsEffectConfig(QWidget* parent, const QVariantList& args)
-    :   KCModule(EffectFactory::componentData(), parent, args)
+    :   KCModule(KAboutData::pluginData(QStringLiteral("presentwindows")), parent, args)
 {
     m_ui = new PresentWindowsEffectConfigForm(this);
 
@@ -49,28 +50,31 @@ PresentWindowsEffectConfig::PresentWindowsEffectConfig(QWidget* parent, const QV
 
     layout->addWidget(m_ui);
 
+#warning Global Shortcuts need porting
+#if KWIN_QT5_PORTING
     // Shortcut config. The shortcut belongs to the component "kwin"!
     m_actionCollection = new KActionCollection(this, KComponentData("kwin"));
 
-    m_actionCollection->setConfigGroup("PresentWindows");
+    m_actionCollection->setConfigGroup(QStringLiteral("PresentWindows"));
     m_actionCollection->setConfigGlobal(true);
 
-    KAction* a = (KAction*) m_actionCollection->addAction("ExposeAll");
+    KAction* a = (KAction*) m_actionCollection->addAction(QStringLiteral("ExposeAll"));
     a->setText(i18n("Toggle Present Windows (All desktops)"));
     a->setProperty("isConfigurationAction", true);
     a->setGlobalShortcut(KShortcut(Qt::CTRL + Qt::Key_F10));
 
-    KAction* b = (KAction*) m_actionCollection->addAction("Expose");
+    KAction* b = (KAction*) m_actionCollection->addAction(QStringLiteral("Expose"));
     b->setText(i18n("Toggle Present Windows (Current desktop)"));
     b->setProperty("isConfigurationAction", true);
     b->setGlobalShortcut(KShortcut(Qt::CTRL + Qt::Key_F9));
 
-    KAction* c = (KAction*)m_actionCollection->addAction("ExposeClass");
+    KAction* c = (KAction*)m_actionCollection->addAction(QStringLiteral("ExposeClass"));
     c->setText(i18n("Toggle Present Windows (Window class)"));
     c->setProperty("isConfigurationAction", true);
     c->setGlobalShortcut(KShortcut(Qt::CTRL + Qt::Key_F7));
 
     m_ui->shortcutEditor->addCollection(m_actionCollection);
+#endif
 
     connect(m_ui->shortcutEditor, SIGNAL(keyChange()), this, SLOT(changed()));
 
@@ -89,7 +93,7 @@ void PresentWindowsEffectConfig::save()
 {
     KCModule::save();
     m_ui->shortcutEditor->save();
-    EffectsHandler::sendReloadMessage("presentwindows");
+    EffectsHandler::sendReloadMessage(QStringLiteral("presentwindows"));
 }
 
 void PresentWindowsEffectConfig::defaults()

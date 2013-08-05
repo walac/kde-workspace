@@ -93,8 +93,8 @@ Compositor::Compositor(QObject* workspace)
     qRegisterMetaType<Compositor::SuspendReason>("Compositor::SuspendReason");
     new CompositingAdaptor(this);
     QDBusConnection dbus = QDBusConnection::sessionBus();
-    dbus.registerObject("/Compositor", this);
-    dbus.registerService("org.kde.kwin.Compositing");
+    dbus.registerObject(QStringLiteral("/Compositor"), this);
+    dbus.registerService(QStringLiteral("org.kde.kwin.Compositing"));
     connect(&unredirectTimer, SIGNAL(timeout()), SLOT(delayedCheckUnredirect()));
     connect(&compositeResetTimer, SIGNAL(timeout()), SLOT(restart()));
     connect(workspace, SIGNAL(configChanged()), SLOT(slotConfigChanged()));
@@ -183,7 +183,7 @@ void Compositor::slotCompositingOptionsInitialized()
         // Some broken drivers crash on glXQuery() so to prevent constant KWin crashes:
         KSharedConfigPtr unsafeConfigPtr = KGlobal::config();
         KConfigGroup unsafeConfig(unsafeConfigPtr, "Compositing");
-        const QString openGLIsUnsafe = "OpenGLIsUnsafe" + (is_multihead ? QString::number(screen_number) : "");
+        const QString openGLIsUnsafe = QStringLiteral("OpenGLIsUnsafe") + (is_multihead ? QString::number(screen_number) : QString());
         if (unsafeConfig.readEntry(openGLIsUnsafe, false))
             kWarning(1212) << "KWin has detected that your OpenGL library is unsafe to use";
         else {
@@ -381,15 +381,9 @@ void Compositor::fallbackToXRenderCompositing()
     finish();
     KConfigGroup config(KGlobal::config(), "Compositing");
     config.writeEntry("Backend", "XRender");
-    config.writeEntry("GraphicsSystem", "native");
     config.sync();
-    if (Extensions::nonNativePixmaps()) { // must restart to change the graphicssystem
-        restartKWin("automatic graphicssystem change for XRender backend");
-        return;
-    } else {
-        options->setCompositingMode(XRenderCompositing);
-        setup();
-    }
+    options->setCompositingMode(XRenderCompositing);
+    setup();
 }
 
 void Compositor::slotConfigChanged()
@@ -407,12 +401,6 @@ void Compositor::slotReinitialize()
 {
     // Reparse config. Config options will be reloaded by setup()
     KGlobal::config()->reparseConfiguration();
-    const QString graphicsSystem = KConfigGroup(KGlobal::config(), "Compositing").readEntry("GraphicsSystem", "");
-    if ((Extensions::nonNativePixmaps() && graphicsSystem == "native") ||
-        (!Extensions::nonNativePixmaps() && (graphicsSystem == "raster" || graphicsSystem == "opengl")) ) {
-        restartKWin("explicitly reconfigured graphicsSystem change");
-        return;
-    }
 
     // Restart compositing
     finish();
@@ -443,13 +431,13 @@ void Compositor::toggleCompositing()
     if (m_suspended) {
         // when disabled show a shortcut how the user can get back compositing
         QString shortcut, message;
-        if (KAction* action = qobject_cast<KAction*>(Workspace::self()->actionCollection()->action("Suspend Compositing")))
+        if (KAction* action = qobject_cast<KAction*>(Workspace::self()->actionCollection()->action(QStringLiteral("Suspend Compositing"))))
             shortcut = action->globalShortcut().primary().toString(QKeySequence::NativeText);
         if (!shortcut.isEmpty()) {
             // display notification only if there is the shortcut
             message = i18n("Desktop effects have been suspended by another application.<br/>"
                            "You can resume using the '%1' shortcut.", shortcut);
-            KNotification::event("compositingsuspendeddbus", message);
+            KNotification::event(QStringLiteral("compositingsuspendeddbus"), message);
         }
     }
 }
@@ -774,14 +762,6 @@ void Compositor::setOverlayWindowVisibility(bool visible)
     }
 }
 
-void Compositor::restartKWin(const QString &reason)
-{
-    kDebug(1212) << "restarting kwin for:" << reason;
-    char cmd[1024]; // copied from crashhandler - maybe not the best way to do?
-    sprintf(cmd, "%s --replace &", QFile::encodeName(QCoreApplication::applicationFilePath()).constData());
-    system(cmd);
-}
-
 bool Compositor::isCompositingPossible() const
 {
     return CompositingPrefs::compositingPossible();
@@ -800,22 +780,22 @@ bool Compositor::isOpenGLBroken() const
 QString Compositor::compositingType() const
 {
     if (!hasScene()) {
-        return "none";
+        return QStringLiteral("none");
     }
     switch (m_scene->compositingType()) {
     case XRenderCompositing:
-        return "xrender";
+        return QStringLiteral("xrender");
     case OpenGL1Compositing:
-            return "gl1";
+            return QStringLiteral("gl1");
     case OpenGL2Compositing:
 #ifdef KWIN_HAVE_OPENGLES
-        return "gles";
+        return QStringLiteral("gles");
 #else
-        return "gl2";
+        return QStringLiteral("gl2");
 #endif
     case NoCompositing:
     default:
-        return "none";
+        return QStringLiteral("none");
     }
 }
 
@@ -902,7 +882,6 @@ bool Toplevel::compositing() const
 
 void Client::damageNotifyEvent()
 {
-#ifdef HAVE_XSYNC
     if (syncRequest.isPending && isResize()) {
         emit damaged(this, QRect());
         m_isDamaged = true;
@@ -910,13 +889,9 @@ void Client::damageNotifyEvent()
     }
 
     if (!ready_for_painting) { // avoid "setReadyForPainting()" function calling overhead
-        if (syncRequest.counter == None)   // cannot detect complete redraw, consider done now
+        if (syncRequest.counter == XCB_NONE)   // cannot detect complete redraw, consider done now
             setReadyForPainting();
     }
-#else
-    if (!ready_for_painting)
-        setReadyForPainting();
-#endif
 
     Toplevel::damageNotifyEvent();
 }

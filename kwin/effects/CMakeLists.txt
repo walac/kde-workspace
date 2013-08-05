@@ -3,13 +3,18 @@ set(kwin_effect_OWN_LIBS
 )
 
 set(kwin_effect_KDE_LIBS
-    ${KDE4_KDEUI_LIBS}
-    ${KDE4_PLASMA_LIBS}
-    ${KDECLARATIVE_LIBRARIES}
+    ${KDE4Support_LIBRARIES}
+    ${KDE4_KDEUI_LIBRARY} # KGlobalSettings::dndEventDelay() in PW and DG
+    ${KDE4_KDECORE_LIBS} # kdebug
+    KF5::KWindowSystem
+    KF5::plasma # screenedge effect
+    KF5::KDE4Attic # windowgeometry effect using KLocale
 )
 
 set(kwin_effect_QT_LIBS
-    ${QT_QTDECLARATIVE_LIBRARY}
+    ${Qt5Quick_LIBRARIES}
+    ${Qt5X11Extras_LIBRARIES}
+    ${Qt5DBus_LIBRARIES}
 )
 
 set(kwin_effect_XLIB_LIBS
@@ -19,7 +24,6 @@ set(kwin_effect_XLIB_LIBS
 
 set(kwin_effect_XCB_LIBS
     ${XCB_XCB_LIBRARIES}
-    ${X11_XCB_LIBRARIES}
     ${XCB_IMAGE_LIBRARIES}
     ${XCB_XFIXES_LIBRARIES}
 )
@@ -82,7 +86,15 @@ macro( KWIN4_ADD_EFFECT_CONFIG name )
     if(OPENGLES_FOUND)
         set_target_properties(kcm_kwin4_effect_${name} PROPERTIES COMPILE_FLAGS "-DKWIN_HAVE_OPENGLES")
     endif()
-    target_link_libraries( kcm_kwin4_effect_${name} kwineffects ${KDE4_KIO_LIBS} ${KDE4_KDEUI_LIBS} )
+    target_link_libraries( kcm_kwin4_effect_${name}
+        kwineffects
+        ${Qt5Widgets_LIBRARIES}
+        ${KDE4Support_LIBRARIES}
+        ${KDE4_KIO_LIBRARY} # KUrlRequester
+        KF5::KCoreAddons
+        KF5::KConfigWidgets
+        KF5::KI18n
+        )
     install( TARGETS kcm_kwin4_effect_${name} DESTINATION ${PLUGIN_INSTALL_DIR} )
 endmacro()
 

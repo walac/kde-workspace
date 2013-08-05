@@ -31,8 +31,8 @@
 #include "oxygenhelper.h"
 
 #include <QWidget>
-#include <QtGui/QPaintEvent>
-#include <QtGui/QPixmap>
+#include <QPaintEvent>
+#include <QPixmap>
 #include <cassert>
 
 namespace Oxygen
@@ -87,7 +87,7 @@ namespace Oxygen
              if( isVisible() ) update();
         }
 
-        protected slots:
+        protected Q_SLOTS:
 
         //! toggle background drawing
         void toggleBackground( bool value )

@@ -76,7 +76,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace KWin
 {
 
-static const QString SCREEN_LOCKER_SERVICE_NAME = QString("org.freedesktop.ScreenSaver");
+static const QString SCREEN_LOCKER_SERVICE_NAME = QStringLiteral("org.freedesktop.ScreenSaver");
 
 ScreenLockerWatcher::ScreenLockerWatcher(QObject *parent)
     : QObject(parent)
@@ -220,8 +220,8 @@ EffectsHandlerImpl::EffectsHandlerImpl(Compositor *compositor, Scene *scene)
 {
     new EffectsAdaptor(this);
     QDBusConnection dbus = QDBusConnection::sessionBus();
-    dbus.registerObject("/Effects", this);
-    dbus.registerService("org.kde.kwin.Effects");
+    dbus.registerObject(QStringLiteral("/Effects"), this);
+    dbus.registerService(QStringLiteral("org.kde.kwin.Effects"));
     // init is important, otherwise causes crashes when quads are build before the first painting pass start
     m_currentBuildQuadsIterator = m_activeEffects.constEnd();
 
@@ -304,8 +304,7 @@ void EffectsHandlerImpl::reconfigure()
     // perform querying for the services in a thread
     QFutureWatcher<KService::List> *watcher = new QFutureWatcher<KService::List>(this);
     connect(watcher, SIGNAL(finished()), this, SLOT(slotEffectsQueried()));
-    watcher->setFuture(QtConcurrent::run(KServiceTypeTrader::self(), &KServiceTypeTrader::query, QString("KWin/Effect"), QString()));
-    watcher->waitForFinished(); // TODO: remove once KConfigGroup is thread safe, bug #321576
+    watcher->setFuture(QtConcurrent::run(KServiceTypeTrader::self(), &KServiceTypeTrader::query, QStringLiteral("KWin/Effect"), QString()));
 }
 
 void EffectsHandlerImpl::slotEffectsQueried()
@@ -751,7 +750,7 @@ void EffectsHandlerImpl::stopMouseInterception(Effect *effect)
 void* EffectsHandlerImpl::getProxy(QString name)
 {
     // All effects start with "kwin4_effect_", prepend it to the name
-    name.prepend("kwin4_effect_");
+    name.prepend(QStringLiteral("kwin4_effect_"));
 
     for (QVector< EffectPair >::const_iterator it = loaded_effects.constBegin(); it != loaded_effects.constEnd(); ++it)
         if ((*it).first == name)
@@ -1202,43 +1201,31 @@ void EffectsHandlerImpl::defineCursor(Qt::CursorShape shape)
     m_mouseInterceptionWindow.defineCursor(Cursor::x11Cursor(shape));
 }
 
-bool EffectsHandlerImpl::checkInputWindowEvent(XEvent* e)
+bool EffectsHandlerImpl::checkInputWindowEvent(xcb_button_press_event_t *e)
 {
-    if (e->type != ButtonPress && e->type != ButtonRelease && e->type != MotionNotify)
-        return false;
-    if (m_grabbedMouseEffects.isEmpty() || m_mouseInterceptionWindow != e->xany.window) {
+    if (m_grabbedMouseEffects.isEmpty() || m_mouseInterceptionWindow != e->event) {
         return false;
     }
-    foreach (Effect *effect, m_grabbedMouseEffects) {
-        switch(e->type) {
-        case ButtonPress: {
-            XButtonEvent* e2 = &e->xbutton;
-            Qt::MouseButton button = x11ToQtMouseButton(e2->button);
-            Qt::MouseButtons buttons = x11ToQtMouseButtons(e2->state) | button;
-            QMouseEvent ev(QEvent::MouseButtonPress,
-                            QPoint(e2->x, e2->y), QPoint(e2->x_root, e2->y_root),
-                            button, buttons, x11ToQtKeyboardModifiers(e2->state));
-            effect->windowInputMouseEvent(&ev);
-            break; // --->
-        }
-        case ButtonRelease: {
-            XButtonEvent* e2 = &e->xbutton;
-            Qt::MouseButton button = x11ToQtMouseButton(e2->button);
-            Qt::MouseButtons buttons = x11ToQtMouseButtons(e2->state) & ~button;
-            QMouseEvent ev(QEvent::MouseButtonRelease,
-                            QPoint(e2->x, e2->y), QPoint(e2->x_root, e2->y_root),
-                            button, buttons, x11ToQtKeyboardModifiers(e2->state));
-            effect->windowInputMouseEvent(&ev);
-            break; // --->
-        }
-        case MotionNotify: {
-            XMotionEvent* e2 = &e->xmotion;
-            QMouseEvent ev(QEvent::MouseMove, QPoint(e2->x, e2->y), QPoint(e2->x_root, e2->y_root),
-                            Qt::NoButton, x11ToQtMouseButtons(e2->state), x11ToQtKeyboardModifiers(e2->state));
-            effect->windowInputMouseEvent(&ev);
-            break; // --->
-        }
-        }
+    for (Effect *effect : m_grabbedMouseEffects) {
+        Qt::MouseButton button = x11ToQtMouseButton(e->detail);
+        Qt::MouseButtons buttons = x11ToQtMouseButtons(e->state) & ~button;
+        QMouseEvent ev(((e->response_type & ~0x80) == XCB_BUTTON_PRESS) ? QEvent::MouseButtonPress : QEvent::MouseButtonRelease,
+                        QPoint(e->event_x, e->event_y), QPoint(e->root_x, e->root_y),
+                        button, buttons, x11ToQtKeyboardModifiers(e->state));
+        effect->windowInputMouseEvent(&ev);
+    }
+    return true; // eat event
+}
+
+bool EffectsHandlerImpl::checkInputWindowEvent(xcb_motion_notify_event_t *e)
+{
+    if (m_grabbedMouseEffects.isEmpty() || m_mouseInterceptionWindow != e->event) {
+        return false;
+    }
+    for (Effect *effect : m_grabbedMouseEffects) {
+        QMouseEvent ev(QEvent::MouseMove, QPoint(e->event_x, e->event_y), QPoint(e->root_x, e->root_y),
+                        Qt::NoButton, x11ToQtMouseButtons(e->state), x11ToQtKeyboardModifiers(e->state));
+        effect->windowInputMouseEvent(&ev);
     }
     return true; // eat event
 }
@@ -1294,11 +1281,11 @@ KLibrary* EffectsHandlerImpl::findEffectLibrary(KService* service)
 {
     QString libname = service->library();
 #ifdef KWIN_HAVE_OPENGLES
-    if (libname.startsWith(QLatin1String("kwin4_effect_"))) {
-        libname.replace("kwin4_effect_", "kwin4_effect_gles_");
+    if (libname.startsWith(QStringLiteral("kwin4_effect_"))) {
+        libname.replace(QStringLiteral("kwin4_effect_"), QStringLiteral("kwin4_effect_gles_"));
     }
 #endif
-    libname.replace("kwin", KWIN_NAME);
+    libname.replace(QStringLiteral("kwin"), QStringLiteral(KWIN_NAME));
     KLibrary* library = new KLibrary(libname);
     if (!library) {
         kError(1212) << "couldn't open library for effect '" <<
@@ -1328,7 +1315,7 @@ QStringList EffectsHandlerImpl::loadedEffects() const
 
 QStringList EffectsHandlerImpl::listOfEffects() const
 {
-    KService::List offers = KServiceTypeTrader::self()->query("KWin/Effect");
+    KService::List offers = KServiceTypeTrader::self()->query(QStringLiteral("KWin/Effect"));
     QStringList listOfModules;
     // First unload necessary effects
     foreach (const KService::Ptr & service, offers) {
@@ -1357,15 +1344,15 @@ bool EffectsHandlerImpl::loadEffect(const QString& name, bool checkDefault)
     kDebug(1212) << "Trying to load " << name;
     QString internalname = name.toLower();
 
-    QString constraint = QString("[X-KDE-PluginInfo-Name] == '%1'").arg(internalname);
-    KService::List offers = KServiceTypeTrader::self()->query("KWin/Effect", constraint);
+    QString constraint = QStringLiteral("[X-KDE-PluginInfo-Name] == '%1'").arg(internalname);
+    KService::List offers = KServiceTypeTrader::self()->query(QStringLiteral("KWin/Effect"), constraint);
     if (offers.isEmpty()) {
         kError(1212) << "Couldn't find effect " << name << endl;
         return false;
     }
     KService::Ptr service = offers.first();
 
-    if (service->property("X-Plasma-API").toString() == "javascript") {
+    if (service->property(QStringLiteral("X-Plasma-API")).toString() == QStringLiteral("javascript")) {
         // this is a scripted effect - use different loader
         return loadScriptedEffect(name, service.data());
     }
@@ -1375,8 +1362,8 @@ bool EffectsHandlerImpl::loadEffect(const QString& name, bool checkDefault)
         return false;
     }
 
-    QString version_symbol = "effect_version_" + name;
-    KLibrary::void_function_ptr version_func = library->resolveFunction(version_symbol.toAscii());
+    QString version_symbol = QStringLiteral("effect_version_") + name;
+    KLibrary::void_function_ptr version_func = library->resolveFunction(version_symbol.toAscii().constData());
     if (version_func == NULL) {
         kWarning(1212) << "Effect " << name << " does not provide required API version, ignoring.";
 	delete library;
@@ -1394,13 +1381,13 @@ bool EffectsHandlerImpl::loadEffect(const QString& name, bool checkDefault)
         return false;
     }
 
-    const QString enabledByDefault_symbol = "effect_enabledbydefault_" + name;
+    const QString enabledByDefault_symbol = QStringLiteral("effect_enabledbydefault_") + name;
     KLibrary::void_function_ptr enabledByDefault_func = library->resolveFunction(enabledByDefault_symbol.toAscii().data());
 
-    const QString supported_symbol = "effect_supported_" + name;
+    const QString supported_symbol = QStringLiteral("effect_supported_") + name;
     KLibrary::void_function_ptr supported_func = library->resolveFunction(supported_symbol.toAscii().data());
 
-    const QString create_symbol = "effect_create_" + name;
+    const QString create_symbol = QStringLiteral("effect_create_") + name;
     KLibrary::void_function_ptr create_func = library->resolveFunction(create_symbol.toAscii().data());
 
     if (supported_func) {
@@ -1446,7 +1433,7 @@ bool EffectsHandlerImpl::loadEffect(const QString& name, bool checkDefault)
 
     Effect* e = create();
 
-    effect_order.insert(service->property("X-KDE-Ordering").toInt(), EffectPair(name, e));
+    effect_order.insert(service->property(QStringLiteral("X-KDE-Ordering")).toInt(), EffectPair(name, e));
     effectsChanged();
     effect_libraries[ name ] = library;
 
@@ -1456,13 +1443,13 @@ bool EffectsHandlerImpl::loadEffect(const QString& name, bool checkDefault)
 bool EffectsHandlerImpl::loadScriptedEffect(const QString& name, KService *service)
 {
 #ifdef KWIN_BUILD_SCRIPTING
-    const KDesktopFile df("services", service->entryPath());
-    const QString scriptName = df.desktopGroup().readEntry<QString>("X-Plasma-MainScript", "");
+    const KDesktopFile df(QStandardPaths::GenericDataLocation, QStringLiteral("kde5/services/") + service->entryPath());
+    const QString scriptName = df.desktopGroup().readEntry<QString>(QStringLiteral("X-Plasma-MainScript"), QString());
     if (scriptName.isEmpty()) {
         kDebug(1212) << "X-Plasma-MainScript not set";
         return false;
     }
-    const QString scriptFile = KStandardDirs::locate("data", QLatin1String(KWIN_NAME) + "/effects/" + name + "/contents/" + scriptName);
+    const QString scriptFile = KStandardDirs::locate("data", QStringLiteral(KWIN_NAME) + QStringLiteral("/effects/") + name + QStringLiteral("/contents/") + scriptName);
     if (scriptFile.isNull()) {
         kDebug(1212) << "Could not locate the effect script";
         return false;
@@ -1472,7 +1459,7 @@ bool EffectsHandlerImpl::loadScriptedEffect(const QString& name, KService *servi
         kDebug(1212) << "Could not initialize scripted effect: " << name;
         return false;
     }
-    effect_order.insert(service->property("X-KDE-Ordering").toInt(), EffectPair(name, effect));
+    effect_order.insert(service->property(QStringLiteral("X-KDE-Ordering")).toInt(), EffectPair(name, effect));
     effectsChanged();
     return true;
 #else
@@ -1597,14 +1584,14 @@ QString EffectsHandlerImpl::supportInformation(const QString &name) const
     }
     for (QVector< EffectPair >::const_iterator it = loaded_effects.constBegin(); it != loaded_effects.constEnd(); ++it) {
         if ((*it).first == name) {
-            QString support((*it).first + ":\n");
+            QString support((*it).first + QStringLiteral(":\n"));
             const QMetaObject *metaOptions = (*it).second->metaObject();
             for (int i=0; i<metaOptions->propertyCount(); ++i) {
                 const QMetaProperty property = metaOptions->property(i);
-                if (QLatin1String(property.name()) == "objectName") {
+                if (QLatin1String(property.name()) == QLatin1String("objectName")) {
                     continue;
                 }
-                support.append(QLatin1String(property.name()) % ": " % (*it).second->property(property.name()).toString() % '\n');
+                support.append(QString::fromUtf8(property.name()) + QStringLiteral(": ") + (*it).second->property(property.name()).toString() + QStringLiteral("\n"));
             }
             return support;
         }
@@ -1620,7 +1607,7 @@ bool EffectsHandlerImpl::isScreenLocked() const
 
 QString EffectsHandlerImpl::debug(const QString& name, const QString& parameter) const
 {
-    QString internalName = name.startsWith("kwin4_effect_") ? name : "kwin4_effect_" + name;
+    QString internalName = name.startsWith(QStringLiteral("kwin4_effect_")) ? name : QStringLiteral("kwin4_effect_") + name;
     for (QVector< EffectPair >::const_iterator it = loaded_effects.constBegin(); it != loaded_effects.constEnd(); ++it) {
         if ((*it).first == internalName) {
             return it->second->debug(parameter);
@@ -1865,14 +1852,15 @@ EffectFrameImpl::EffectFrameImpl(EffectFrameStyle style, bool staticSize, QPoint
     , m_point(position)
     , m_alignment(alignment)
     , m_shader(NULL)
+    , m_theme(new Plasma::Theme(this))
 {
     if (m_style == EffectFrameStyled) {
-        m_frame.setImagePath("widgets/background");
+        m_frame.setImagePath(QStringLiteral("widgets/background"));
         m_frame.setCacheAllRenderedFrames(true);
-        connect(Plasma::Theme::defaultTheme(), SIGNAL(themeChanged()), this, SLOT(plasmaThemeChanged()));
+        connect(m_theme, SIGNAL(themeChanged()), this, SLOT(plasmaThemeChanged()));
     }
-    m_selection.setImagePath("widgets/viewitem");
-    m_selection.setElementPrefix("hover");
+    m_selection.setImagePath(QStringLiteral("widgets/viewitem"));
+    m_selection.setElementPrefix(QStringLiteral("hover"));
     m_selection.setCacheAllRenderedFrames(true);
     m_selection.setEnabledBorders(Plasma::FrameSvg::AllBorders);
 
@@ -2096,7 +2084,7 @@ void EffectFrameImpl::autoResize()
 
 QColor EffectFrameImpl::styledTextColor()
 {
-    return Plasma::Theme::defaultTheme()->color(Plasma::Theme::TextColor);
+    return m_theme->color(Plasma::Theme::TextColor);
 }
 
 } // namespace

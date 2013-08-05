@@ -28,6 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <kconfiggroup.h>
 #include <KActionCollection>
 #include <kaction.h>
+#include <KDE/KAboutData>
 
 #include <QVBoxLayout>
 
@@ -42,7 +43,7 @@ DesktopGridEffectConfigForm::DesktopGridEffectConfigForm(QWidget* parent) : QWid
 }
 
 DesktopGridEffectConfig::DesktopGridEffectConfig(QWidget* parent, const QVariantList& args)
-    :   KCModule(EffectFactory::componentData(), parent, args)
+    :   KCModule(KAboutData::pluginData(QStringLiteral("desktopgrid")), parent, args)
 {
     m_ui = new DesktopGridEffectConfigForm(this);
 
@@ -50,18 +51,21 @@ DesktopGridEffectConfig::DesktopGridEffectConfig(QWidget* parent, const QVariant
 
     layout->addWidget(m_ui);
 
+#warning Global Shortcuts need porting
+#if KWIN_QT5_PORTING
     // Shortcut config. The shortcut belongs to the component "kwin"!
     m_actionCollection = new KActionCollection(this, KComponentData("kwin"));
 
-    m_actionCollection->setConfigGroup("DesktopGrid");
+    m_actionCollection->setConfigGroup(QStringLiteral("DesktopGrid"));
     m_actionCollection->setConfigGlobal(true);
 
-    KAction* a = (KAction*) m_actionCollection->addAction("ShowDesktopGrid");
+    KAction* a = (KAction*) m_actionCollection->addAction(QStringLiteral("ShowDesktopGrid"));
     a->setText(i18n("Show Desktop Grid"));
     a->setProperty("isConfigurationAction", true);
     a->setGlobalShortcut(KShortcut(Qt::CTRL + Qt::Key_F8));
 
     m_ui->shortcutEditor->addCollection(m_actionCollection);
+#endif
 
     m_ui->desktopNameAlignmentCombo->addItem(i18nc("Desktop name alignment:", "Disabled"), QVariant(Qt::Alignment(0)));
     m_ui->desktopNameAlignmentCombo->addItem(i18n("Top"), QVariant(Qt::AlignHCenter | Qt::AlignTop));
@@ -94,11 +98,11 @@ void DesktopGridEffectConfig::save()
     DesktopGridConfig::setDesktopNameAlignment(m_ui->desktopNameAlignmentCombo->itemData(m_ui->desktopNameAlignmentCombo->currentIndex()).toInt());
     KCModule::save();
 
-    KConfigGroup conf = EffectsHandler::effectConfig("DesktopGrid");
+    KConfigGroup conf = EffectsHandler::effectConfig(QStringLiteral("DesktopGrid"));
     conf.writeEntry("DesktopNameAlignment", DesktopGridConfig::desktopNameAlignment());
     conf.sync();
 
-    EffectsHandler::sendReloadMessage("desktopgrid");
+    EffectsHandler::sendReloadMessage(QStringLiteral("desktopgrid"));
 }
 
 void DesktopGridEffectConfig::load()

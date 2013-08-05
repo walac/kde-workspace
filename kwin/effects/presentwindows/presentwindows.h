@@ -26,22 +26,24 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <kwineffects.h>
 #include <kshortcut.h>
-#include <QDeclarativeView>
+#include <QQuickView>
 
 class QTimer;
 
 namespace KWin
 {
-class CloseWindowView : public QDeclarativeView
+class CloseWindowView : public QQuickView
 {
     Q_OBJECT
 public:
-    explicit CloseWindowView(QWidget *parent = 0);
+    explicit CloseWindowView(QWindow *parent = 0);
     void windowInputMouseEvent(QMouseEvent* e);
     void disarm();
+public Q_SLOTS:
+    void arm();
 
 Q_SIGNALS:
-    void close();
+    void requestClose();
 
 protected:
     void hideEvent(QHideEvent *event);
@@ -186,7 +188,7 @@ public:
     bool isDragToClose() const {
         return m_dragToClose;
     }
-public slots:
+public Q_SLOTS:
     void setActive(bool active);
     void toggleActive()  {
         m_mode = ModeCurrentDesktop;
@@ -211,7 +213,7 @@ public slots:
     // atoms
     void slotPropertyNotify(KWin::EffectWindow* w, long atom);
 
-private slots:
+private Q_SLOTS:
     void closeWindow();
     void elevateCloseWindow();
     void screenCountChanged();

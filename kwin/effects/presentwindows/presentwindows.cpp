@@ -41,8 +41,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <assert.h>
 #include <limits.h>
 #include <QApplication>
-#include <QDeclarativeContext>
-#include <QDeclarativeEngine>
+#include <QQmlContext>
+#include <QQmlEngine>
+#include <QQuickItem>
 #include <QDesktopWidget>
 #include <QGraphicsObject>
 #include <QTimer>
@@ -76,19 +77,19 @@ PresentWindowsEffect::PresentWindowsEffect()
     m_atomWindows = effects->announceSupportProperty("_KDE_PRESENT_WINDOWS_GROUP", this);
 
     KActionCollection* actionCollection = new KActionCollection(this);
-    KAction* a = (KAction*)actionCollection->addAction("Expose");
+    KAction* a = (KAction*)actionCollection->addAction(QStringLiteral("Expose"));
     a->setText(i18n("Toggle Present Windows (Current desktop)"));
     a->setGlobalShortcut(KShortcut(Qt::CTRL + Qt::Key_F9));
     shortcut = a->globalShortcut();
     connect(a, SIGNAL(triggered(bool)), this, SLOT(toggleActive()));
     connect(a, SIGNAL(globalShortcutChanged(QKeySequence)), this, SLOT(globalShortcutChanged(QKeySequence)));
-    KAction* b = (KAction*)actionCollection->addAction("ExposeAll");
+    KAction* b = (KAction*)actionCollection->addAction(QStringLiteral("ExposeAll"));
     b->setText(i18n("Toggle Present Windows (All desktops)"));
     b->setGlobalShortcut(KShortcut(Qt::CTRL + Qt::Key_F10));
     shortcutAll = b->globalShortcut();
     connect(b, SIGNAL(triggered(bool)), this, SLOT(toggleActiveAllDesktops()));
     connect(b, SIGNAL(globalShortcutChanged(QKeySequence)), this, SLOT(globalShortcutChangedAll(QKeySequence)));
-    KAction* c = (KAction*)actionCollection->addAction("ExposeClass");
+    KAction* c = (KAction*)actionCollection->addAction(QStringLiteral("ExposeClass"));
     c->setText(i18n("Toggle Present Windows (Window class)"));
     c->setGlobalShortcut(KShortcut(Qt::CTRL + Qt::Key_F7));
     connect(c, SIGNAL(triggered(bool)), this, SLOT(toggleActiveClass()));
@@ -574,7 +575,7 @@ void PresentWindowsEffect::windowInputMouseEvent(QEvent *e)
                 m_dragInProgress = false;
                 m_dragWindow = NULL;
                 if (m_highlightedDropTarget) {
-                    KIcon icon("user-trash");
+                    KIcon icon(QStringLiteral("user-trash"));
                     m_highlightedDropTarget->setIcon(icon.pixmap(QSize(128, 128), QIcon::Normal));
                     m_highlightedDropTarget = NULL;
                 }
@@ -614,7 +615,7 @@ void PresentWindowsEffect::windowInputMouseEvent(QEvent *e)
         m_dragWindow = NULL;
         if (m_highlightedDropTarget) {
             effects->addRepaint(m_highlightedDropTarget->geometry());
-            KIcon icon("user-trash");
+            KIcon icon(QStringLiteral("user-trash"));
             m_highlightedDropTarget->setIcon(icon.pixmap(QSize(128, 128), QIcon::Normal));
             m_highlightedDropTarget = NULL;
         }
@@ -648,12 +649,12 @@ void PresentWindowsEffect::windowInputMouseEvent(QEvent *e)
         }
         if (target && !m_highlightedDropTarget) {
             m_highlightedDropTarget = target;
-            KIcon icon("user-trash");
+            KIcon icon(QStringLiteral("user-trash"));
             effects->addRepaint(m_highlightedDropTarget->geometry());
             m_highlightedDropTarget->setIcon(icon.pixmap(QSize(128, 128), QIcon::Active));
             effects->defineCursor(Qt::DragMoveCursor);
         } else if (!target && m_highlightedDropTarget) {
-            KIcon icon("user-trash");
+            KIcon icon(QStringLiteral("user-trash"));
             effects->addRepaint(m_highlightedDropTarget->geometry());
             m_highlightedDropTarget->setIcon(icon.pixmap(QSize(128, 128), QIcon::Normal));
             m_highlightedDropTarget = NULL;
@@ -1490,7 +1491,7 @@ void PresentWindowsEffect::setActive(bool active)
 
         if (!m_doNotCloseWindows) {
             m_closeView = new CloseWindowView();
-            connect(m_closeView, SIGNAL(close()), SLOT(closeWindow()));
+            connect(m_closeView, &CloseWindowView::requestClose, this, &PresentWindowsEffect::closeWindow);
         }
 
         // Add every single window to m_windowData (Just calling [w] creates it)
@@ -1703,12 +1704,12 @@ void PresentWindowsEffect::updateCloseWindow()
         return;
 
     const QRectF rect(m_motionManager.targetGeometry(m_highlightedWindow));
-    if (2*m_closeView->sceneRect().width() > rect.width() && 2*m_closeView->sceneRect().height() > rect.height()) {
+    if (2*m_closeView->width() > rect.width() && 2*m_closeView->height() > rect.height()) {
         // not for tiny windows (eg. with many windows) - they might become unselectable
         m_closeView->hide();
         return;
     }
-    QRect cvr(QPoint(0,0), m_closeView->sceneRect().size().toSize());
+    QRect cvr(QPoint(0,0), m_closeView->size());
     switch (m_closeButtonCorner)
     {
     case Qt::TopLeftCorner:
@@ -1938,7 +1939,7 @@ void PresentWindowsEffect::screenCountChanged()
         if (m_dragToClose) {
             const QRect screenRect = effects->clientArea(FullScreenArea, i, 1);
             EffectFrame *frame = effects->effectFrame(EffectFrameNone, false);
-            KIcon icon("user-trash");
+            KIcon icon(QStringLiteral("user-trash"));
             frame->setIcon(icon.pixmap(QSize(128, 128)));
             frame->setPosition(QPoint(screenRect.x() + screenRect.width(), screenRect.y()));
             frame->setAlignment(Qt::AlignRight | Qt::AlignTop);
@@ -1951,26 +1952,18 @@ void PresentWindowsEffect::screenCountChanged()
 /************************************************
 * CloseWindowView
 ************************************************/
-CloseWindowView::CloseWindowView(QWidget *parent)
-    : QDeclarativeView(parent)
+CloseWindowView::CloseWindowView(QWindow *parent)
+    : QQuickView(parent)
     , m_armTimer(new QTimer(this))
 {
-    setWindowFlags(Qt::X11BypassWindowManagerHint);
-    setAttribute(Qt::WA_TranslucentBackground);
-    QPalette pal = palette();
-    pal.setColor(backgroundRole(), Qt::transparent);
-    setPalette(pal);
-    foreach (const QString &importPath, KGlobal::dirs()->findDirs("module", "imports")) {
-        engine()->addImportPath(importPath);
-    }
-    KDeclarative kdeclarative;
-    kdeclarative.setDeclarativeEngine(engine());
-    kdeclarative.initialize();
-    kdeclarative.setupBindings();
+    setFlags(Qt::X11BypassWindowManagerHint);
+    setColor(Qt::transparent);
 
-    setSource(QUrl(KStandardDirs::locate("data", QLatin1String("kwin/effects/presentwindows/main.qml"))));
-    if (QObject *item = rootObject()->findChild<QObject*>("closeButton")) {
-        connect(item, SIGNAL(clicked()), SIGNAL(close()));
+    rootContext()->setContextProperty(QStringLiteral("armed"), QVariant(false));
+
+    setSource(QUrl(KStandardDirs::locate("data", QStringLiteral("kwin/effects/presentwindows/main.qml"))));
+    if (QObject *item = rootObject()->findChild<QObject*>(QStringLiteral("closeButton"))) {
+        connect(item, SIGNAL(clicked()), SIGNAL(requestClose()));
     }
 
     // setup the timer - attempt to prevent accidental clicks
@@ -1995,15 +1988,13 @@ void CloseWindowView::windowInputMouseEvent(QMouseEvent *e)
 
 void CloseWindowView::disarm()
 {
-    m_armTimer->start();
+    rootContext()->setContextProperty(QStringLiteral("armed"), QVariant(true));
 }
 
 void CloseWindowView::hideEvent(QHideEvent *event)
 {
-    const QPoint globalPos = mapToGlobal(QPoint(-1,-1));
-    QMouseEvent me(QEvent::MouseMove, QPoint(-1,-1), globalPos, Qt::NoButton, Qt::NoButton, Qt::NoModifier);
-    mouseMoveEvent(&me);
-    QDeclarativeView::hideEvent(event);
+    rootContext()->setContextProperty(QStringLiteral("armed"), QVariant(false));
+    m_armTimer->start();
 }
 
 } // namespace

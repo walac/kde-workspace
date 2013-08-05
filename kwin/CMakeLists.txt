@@ -3,7 +3,7 @@ INCLUDE(CMakeDependentOption)
 
 OPTION(KWIN_BUILD_DECORATIONS "Enable building of KWin decorations." ON)
 OPTION(KWIN_BUILD_OXYGEN "Enable building of default decoration Oxygen" ON)
-OPTION(KWIN_BUILD_KCMS "Enable building of KWin configuration modules." ON)
+OPTION(KWIN_BUILD_KCMS "Enable building of KWin configuration modules." OFF)
 OPTION(KWIN_MOBILE_EFFECTS "Only build effects relevant for mobile devices" OFF)
 OPTION(KWIN_BUILD_TABBOX "Enable building of KWin Tabbox functionality" ON)
 OPTION(KWIN_BUILD_SCREENEDGES "Enable building of KWin with screen edge support" ON)
@@ -11,7 +11,7 @@ OPTION(KWIN_BUILD_SCRIPTING "Enable building of KWin with scripting support" ON)
 OPTION(KWIN_BUILD_KAPPMENU "Enable building of KWin with application menu support" ON)
 OPTION(KWIN_BUILD_XRENDER_COMPOSITING "Enable building of KWin with XRender Compositing support" ON)
 OPTION(KWIN_BUILD_OPENGL_1_COMPOSITING "Enable support for OpenGL 1.x, automatically disabled when building for OpenGL ES 2.0" ON)
-OPTION(KWIN_BUILD_ACTIVITIES "Enable building of KWin with kactivities support" ON)
+OPTION(KWIN_BUILD_ACTIVITIES "Enable building of KWin with kactivities support" OFF)
 if(${KDE_PLATFORM_PROFILE} STREQUAL "Desktop")
    OPTION(KWIN_PLASMA_ACTIVE "Enable building KWin for Plasma Active." OFF)
 else()
@@ -85,7 +85,7 @@ endif()
 if( KWIN_BUILD_DECORATIONS )
     add_subdirectory( clients )
 endif()
-add_subdirectory( data )
+# add_subdirectory( data )
 
 add_subdirectory( effects )
 add_subdirectory( scripts )
@@ -221,30 +221,25 @@ set(kwin_OWN_LIBS
 )
 
 set(kwin_QT_LIBS
-    ${QT_QTDECLARATIVE_LIBRARY}
+    ${Qt5Declarative_LIBRARIES}
+    ${Qt5X11Extras_LIBRARIES}
 )
 
 set(kwin_KDE_LIBS
-    ${KDE4_KDEUI_LIBS}
-    ${KDE4_PLASMA_LIBS}
-    ${KDECLARATIVE_LIBRARIES}
+    ${KDE4Support_LIBRARIES}
+    ${KDE4_KDEUI_LIBRARY}
+    KF5::KCrash
+    KF5::plasma
+    KF5::KWindowSystem
 )
 
 set(kwin_XLIB_LIBS
     ${X11_X11_LIB}
-    ${X11_Xext_LIB}
-    ${X11_ICE_LIB}
-    ${X11_SM_LIB}
     ${X11_Xcursor_LIB}
-    ${X11_Xrandr_LIB}
-    ${X11_Xdamage_LIB}
-    ${X11_Xrender_LIB}
-    ${X11_Xfixes_LIB}
 )
 
 set(kwin_XCB_LIBS
     ${XCB_XCB_LIBRARIES}
-    ${X11_XCB_LIBRARIES}
     ${XCB_XFIXES_LIBRARIES}
     ${XCB_DAMAGE_LIBRARIES}
     ${XCB_COMPOSITE_LIBRARIES}

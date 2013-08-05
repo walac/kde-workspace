@@ -20,23 +20,24 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 *********************************************************************/
 
 #include "main.h"
+#include <QTextStream>
 
 //#define QT_CLEAN_NAMESPACE
 #include <ksharedconfig.h>
 
+#include <kdeversion.h>
 #include <kglobal.h>
 #include <klocale.h>
 #include <stdlib.h>
 #include <kcmdlineargs.h>
-#include <kaboutdata.h>
+#include <k4aboutdata.h>
 #include <kcrash.h>
 #include <signal.h>
 #include <fcntl.h>
 #include <QX11Info>
 #include <stdio.h>
-#include <fixx11h.h>
 #include <kxerrorhandler.h>
-#include <kdefakes.h>
+#include <fixx11h.h>
 #include <QtDBus/QtDBus>
 #include <QMessageBox>
 #include <QEvent>
@@ -125,7 +126,7 @@ void KWinSelectionOwner::getAtoms()
     }
 }
 
-void KWinSelectionOwner::replyTargets(Atom property_P, Window requestor_P)
+void KWinSelectionOwner::replyTargets(xcb_atom_t property_P, xcb_window_t requestor_P)
 {
     KSelectionOwner::replyTargets(property_P, requestor_P);
     Atom atoms[ 1 ] = { xa_version };
@@ -134,7 +135,7 @@ void KWinSelectionOwner::replyTargets(Atom property_P, Window requestor_P)
     reinterpret_cast< unsigned char* >(atoms), 1);
 }
 
-bool KWinSelectionOwner::genericReply(Atom target_P, Atom property_P, Window requestor_P)
+bool KWinSelectionOwner::genericReply(xcb_atom_t target_P, xcb_atom_t property_P, xcb_window_t requestor_P)
 {
     if (target_P == xa_version) {
         long version[] = { 2, 0 };
@@ -146,112 +147,6 @@ bool KWinSelectionOwner::genericReply(Atom target_P, Atom property_P, Window req
 }
 
 Atom KWinSelectionOwner::xa_version = None;
-
-// errorMessage is only used ifndef NDEBUG, and only in one place.
-// it might be worth reevaluating why this is used? I don't know.
-#ifndef NDEBUG
-/**
- * Outputs: "Error: <error> (<value>), Request: <request>(<value>), Resource: <value>"
- */
-// This is copied from KXErrorHandler and modified to explicitly use known extensions
-static QByteArray errorMessage(const XErrorEvent& event, Display* dpy)
-{
-    QByteArray ret;
-    char tmp[256];
-    char num[256];
-    if (event.request_code < 128) {
-        // Core request
-        XGetErrorText(dpy, event.error_code, tmp, 255);
-        // The explanation in parentheses just makes
-        // it more verbose and is not really useful
-        if (char* paren = strchr(tmp, '('))
-            * paren = '\0';
-        // The various casts are to get overloads non-ambiguous :-/
-        ret = QByteArray("error: ") + (const char*)(tmp) + '[' + QByteArray::number(event.error_code) + ']';
-        sprintf(num, "%d", event.request_code);
-        XGetErrorDatabaseText(dpy, "XRequest", num, "<unknown>", tmp, 256);
-        ret += QByteArray(", request: ") + (const char*)(tmp) + '[' + QByteArray::number(event.request_code) + ']';
-        if (event.resourceid != 0)
-            ret += QByteArray(", resource: 0x") + QByteArray::number(qlonglong(event.resourceid), 16);
-    } else { // Extensions
-        // XGetErrorText() currently has a bug that makes it fail to find text
-        // for some errors (when error==error_base), also XGetErrorDatabaseText()
-        // requires the right extension name, so it is needed to get info about
-        // all extensions. However that is almost impossible:
-        // - Xlib itself has it, but in internal data.
-        // - Opening another X connection now can cause deadlock with server grabs.
-        // - Fetching it at startup means a bunch of roundtrips.
-
-        // KWin here explicitly uses known extensions.
-        XGetErrorText(dpy, event.error_code, tmp, 255);
-        int index = -1;
-        int base = 0;
-        QVector<Xcb::ExtensionData> extensions = Xcb::Extensions::self()->extensions();
-        for (int i = 0; i < extensions.size(); ++i) {
-            const Xcb::ExtensionData &extension = extensions.at(i);
-            if (extension.errorBase != 0 &&
-                    event.error_code >= extension.errorBase && (index == -1 || extension.errorBase > base)) {
-                index = i;
-                base = extension.errorBase;
-            }
-        }
-        if (tmp == QString::number(event.error_code)) {
-            // XGetErrorText() failed or it has a bug that causes not finding all errors, check ourselves
-            if (index != -1) {
-                snprintf(num, 255, "%s.%d", extensions.at(index).name.constData(), event.error_code - base);
-                XGetErrorDatabaseText(dpy, "XProtoError", num, "<unknown>", tmp, 255);
-            } else
-                strcpy(tmp, "<unknown>");
-        }
-        if (char* paren = strchr(tmp, '('))
-            * paren = '\0';
-        if (index != -1)
-            ret = QByteArray("error: ") + (const char*)(tmp) + '[' + extensions.at(index).name +
-                  '+' + QByteArray::number(event.error_code - base) + ']';
-        else
-            ret = QByteArray("error: ") + (const char*)(tmp) + '[' + QByteArray::number(event.error_code) + ']';
-        tmp[0] = '\0';
-        for (int i = 0; i < extensions.size(); ++i)
-            if (extensions.at(i).majorOpcode == event.request_code) {
-                snprintf(num, 255, "%s.%d", extensions.at(i).name.constData(), event.minor_code);
-                XGetErrorDatabaseText(dpy, "XRequest", num, "<unknown>", tmp, 255);
-                ret += QByteArray(", request: ") + (const char*)(tmp) + '[' +
-                       extensions.at(i).name + '+' + QByteArray::number(event.minor_code) + ']';
-            }
-        if (tmp[0] == '\0')   // Not found?
-            ret += QByteArray(", request <unknown> [") + QByteArray::number(event.request_code) + ':'
-                   + QByteArray::number(event.minor_code) + ']';
-        if (event.resourceid != 0)
-            ret += QByteArray(", resource: 0x") + QByteArray::number(qlonglong(event.resourceid), 16);
-    }
-    return ret;
-}
-#endif
-
-static int x11ErrorHandler(Display* d, XErrorEvent* e)
-{
-    Q_UNUSED(d);
-    bool ignore_badwindow = true; // Might be temporary
-
-    if (initting && (e->request_code == X_ChangeWindowAttributes || e->request_code == X_GrabKey) &&
-            e->error_code == BadAccess) {
-        fputs(i18n("kwin: it looks like there's already a window manager running. kwin not started.\n").toLocal8Bit(), stderr);
-        exit(1);
-    }
-
-    if (ignore_badwindow && (e->error_code == BadWindow || e->error_code == BadColor))
-        return 0;
-
-#ifndef NDEBUG
-    //fprintf( stderr, "kwin: X Error (%s)\n", KXErrorHandler::errorMessage( *e, d ).data());
-    kWarning(1212) << "kwin: X Error (" << errorMessage(*e, d) << ")";
-#endif
-
-    if (kwin_sync)
-        fprintf(stderr, "%s\n", kBacktrace().toLocal8Bit().data());
-
-    return 0;
-}
 
 class AlternativeWMDialog : public KDialog
 {
@@ -272,10 +167,10 @@ public:
         wmList->setEditable(true);
         layout->addWidget(wmList);
 
-        addWM("metacity");
-        addWM("openbox");
-        addWM("fvwm2");
-        addWM(KWIN_NAME);
+        addWM(QStringLiteral("metacity"));
+        addWM(QStringLiteral("openbox"));
+        addWM(QStringLiteral("fvwm2"));
+        addWM(QStringLiteral(KWIN_NAME));
 
         setMainWidget(mainWidget);
 
@@ -301,6 +196,7 @@ int Application::crashes = 0;
 Application::Application()
     : KApplication()
     , owner(screen_number)
+    , m_eventFilter(new XcbEventFilter())
 {
     if (KCmdLineArgs::parsedArgs("qt")->isSet("sync")) {
         kwin_sync = true;
@@ -317,77 +213,79 @@ Application::Application()
     }
 
     if (screen_number == -1)
-        screen_number = DefaultScreen(display());
+        screen_number = QX11Info::appScreen();
 
-    if (!owner.claim(args->isSet("replace"), true)) {
-        fputs(i18n("kwin: unable to claim manager selection, another wm running? (try using --replace)\n").toLocal8Bit(), stderr);
+    connect(&owner, &KSelectionOwner::failedToClaimOwnership, []{
+        fputs(i18n("kwin: unable to claim manager selection, another wm running? (try using --replace)\n").toLocal8Bit().constData(), stderr);
         ::exit(1);
-    }
+    });
     connect(&owner, SIGNAL(lostOwnership()), SLOT(lostSelection()));
-
-    KCrash::setEmergencySaveFunction(Application::crashHandler);
-    crashes = args->getOption("crashes").toInt();
-    if (crashes >= 4) {
-        // Something has gone seriously wrong
-        AlternativeWMDialog dialog;
-        QString cmd = KWIN_NAME;
-        if (dialog.exec() == QDialog::Accepted)
-            cmd = dialog.selectedWM();
-        else
+    connect(&owner, &KSelectionOwner::claimedOwnership, [this, args, config]{
+        KCrash::setEmergencySaveFunction(Application::crashHandler);
+        crashes = args->getOption("crashes").toInt();
+        if (crashes >= 4) {
+            // Something has gone seriously wrong
+            AlternativeWMDialog dialog;
+            QString cmd = QStringLiteral(KWIN_NAME);
+            if (dialog.exec() == QDialog::Accepted)
+                cmd = dialog.selectedWM();
+            else
+                ::exit(1);
+            if (cmd.length() > 500) {
+                kDebug(1212) << "Command is too long, truncating";
+                cmd = cmd.left(500);
+            }
+            kDebug(1212) << "Starting" << cmd << "and exiting";
+            char buf[1024];
+            sprintf(buf, "%s &", cmd.toAscii().data());
+            system(buf);
             ::exit(1);
-        if (cmd.length() > 500) {
-            kDebug(1212) << "Command is too long, truncating";
-            cmd = cmd.left(500);
         }
-        kDebug(1212) << "Starting" << cmd << "and exiting";
-        char buf[1024];
-        sprintf(buf, "%s &", cmd.toAscii().data());
-        system(buf);
-        ::exit(1);
-    }
-    if (crashes >= 2) {
-        // Disable compositing if we have had too many crashes
-        kDebug(1212) << "Too many crashes recently, disabling compositing";
-        KConfigGroup compgroup(config, "Compositing");
-        compgroup.writeEntry("Enabled", false);
-    }
-    // Reset crashes count if we stay up for more that 15 seconds
-    QTimer::singleShot(15 * 1000, this, SLOT(resetCrashesCount()));
+        if (crashes >= 2) {
+            // Disable compositing if we have had too many crashes
+            kDebug(1212) << "Too many crashes recently, disabling compositing";
+            KConfigGroup compgroup(config, "Compositing");
+            compgroup.writeEntry("Enabled", false);
+        }
+        // Reset crashes count if we stay up for more that 15 seconds
+        QTimer::singleShot(15 * 1000, this, SLOT(resetCrashesCount()));
 
-    initting = true; // Startup...
-    // first load options - done internally by a different thread
-    options = new Options;
+        initting = true; // Startup...
+        installNativeEventFilter(m_eventFilter.data());
+        // first load options - done internally by a different thread
+        options = new Options;
 
-    // Install X11 error handler
-    XSetErrorHandler(x11ErrorHandler);
+        // Check  whether another windowmanager is running
+        XSelectInput(display(), rootWindow(), SubstructureRedirectMask);
+        Xcb::sync(); // Trigger error now
 
-    // Check  whether another windowmanager is running
-    XSelectInput(display(), rootWindow(), SubstructureRedirectMask);
-    syncX(); // Trigger error now
+        atoms = new Atoms;
 
-    atoms = new Atoms;
+    //    initting = false; // TODO
 
-//    initting = false; // TODO
+        // This tries to detect compositing options and can use GLX. GLX problems
+        // (X errors) shouldn't cause kwin to abort, so this is out of the
+        // critical startup section where x errors cause kwin to abort.
 
-    // This tries to detect compositing options and can use GLX. GLX problems
-    // (X errors) shouldn't cause kwin to abort, so this is out of the
-    // critical startup section where x errors cause kwin to abort.
+        // create workspace.
+        (void) new Workspace(isSessionRestored());
 
-    // create workspace.
-    (void) new Workspace(isSessionRestored());
+        Xcb::sync(); // Trigger possible errors, there's still a chance to abort
 
-    syncX(); // Trigger possible errors, there's still a chance to abort
+        initting = false; // Startup done, we are up and running now.
 
-    initting = false; // Startup done, we are up and running now.
-
-    XEvent e;
-    e.xclient.type = ClientMessage;
-    e.xclient.message_type = XInternAtom(display(), "_KDE_SPLASH_PROGRESS", False);
-    e.xclient.display = display();
-    e.xclient.window = rootWindow();
-    e.xclient.format = 8;
-    strcpy(e.xclient.data.b, "wm");
-    XSendEvent(display(), rootWindow(), False, SubstructureNotifyMask, &e);
+        XEvent e;
+        e.xclient.type = ClientMessage;
+        e.xclient.message_type = XInternAtom(display(), "_KDE_SPLASH_PROGRESS", False);
+        e.xclient.display = display();
+        e.xclient.window = rootWindow();
+        e.xclient.format = 8;
+        strcpy(e.xclient.data.b, "wm");
+        XSendEvent(display(), rootWindow(), False, SubstructureNotifyMask, &e);
+    });
+    // we need to do an XSync here, otherwise the QPA might crash us later on
+    Xcb::sync();
+    owner.claim(args->isSet("replace"), true);
 }
 
 Application::~Application()
@@ -407,13 +305,6 @@ void Application::lostSelection()
     // Remove windowmanager privileges
     XSelectInput(display(), rootWindow(), PropertyChangeMask);
     quit();
-}
-
-bool Application::x11EventFilter(XEvent* e)
-{
-    if (Workspace::self() && Workspace::self()->workspaceEvent(e))
-        return true;
-    return KApplication::x11EventFilter(e);
 }
 
 bool Application::notify(QObject* o, QEvent* e)
@@ -446,6 +337,19 @@ void Application::resetCrashesCount()
     crashes = 0;
 }
 
+bool XcbEventFilter::nativeEventFilter(const QByteArray &eventType, void *message, long int *result)
+{
+    Q_UNUSED(result)
+    if (!Workspace::self()) {
+        // Workspace not yet created
+        return false;
+    }
+    if (eventType != "xcb_generic_event_t") {
+        return false;
+    }
+    return Workspace::self()->workspaceEvent(static_cast<xcb_generic_event_t *>(message));
+}
+
 } // namespace
 
 static const char version[] = KDE_VERSION_STRING;
@@ -468,22 +372,6 @@ KDE_EXPORT int kdemain(int argc, char * argv[])
 #endif // HAVE_UNISTD_H
     mallopt(M_TRIM_THRESHOLD, 5*pagesize);
 #endif // M_TRIM_THRESHOLD
-
-    // the raster graphicssystem has a quite terrible performance on the XRender backend or when not
-    // compositing at all while some to many decorations suffer from bad performance of the native
-    // graphicssystem (lack of implementation, QGradient internally uses the raster system and
-    // XPutImage's the result because some graphics drivers have insufficient or bad performing
-    // implementations of XRenderCreate*Gradient)
-    //
-    // Therefore we allow configurationa and do some automagic selection to discourage
-    // ""known to be stupid" ideas ;-P
-    // The invalid system parameter "" will use the systems default graphicssystem
-    // "!= XRender" is intended since eg. pot. SW backends likely would profit from raster as well
-    KConfigGroup config(KSharedConfig::openConfig(KWIN_CONFIG), "Compositing");
-    QString preferredSystem("native");
-    if (config.readEntry("Enabled", true) && config.readEntry("Backend", "OpenGL") != "XRender")
-        preferredSystem = "";
-    QApplication::setGraphicsSystem(config.readEntry("GraphicsSystem", preferredSystem));
 
     Display* dpy = XOpenDisplay(NULL);
     if (!dpy) {
@@ -521,19 +409,19 @@ KDE_EXPORT int kdemain(int argc, char * argv[])
         // number. If it had it, it was removed at the "pos" check
         envir.sprintf("DISPLAY=%s.%d", display_name.data(), KWin::screen_number);
 
-        if (putenv(strdup(envir.toAscii()))) {
+        if (putenv(strdup(envir.toAscii().constData()))) {
             fprintf(stderr, "%s: WARNING: unable to set DISPLAY environment variable\n", argv[0]);
             perror("putenv()");
         }
     }
 
-    KAboutData aboutData(
-        KWIN_NAME,                     // The program name used internally
-        0,                          // The message catalog name. If null, program name is used instead
+    K4AboutData aboutData(
+        QByteArray(KWIN_NAME),      // The program name used internally
+        QByteArray(),               // The message catalog name. If null, program name is used instead
         ki18n("KWin"),              // A displayable program name string
-        version,                    // The program version string
+        QByteArray(version),        // The program version string
         ki18n(description),         // Short description of what the app does
-        KAboutData::License_GPL,    // The license this code is released under
+        K4AboutData::License_GPL,   // The license this code is released under
         ki18n("(c) 1999-2008, The KDE Developers"));   // Copyright Statement
     aboutData.addAuthor(ki18n("Matthias Ettrich"), KLocalizedString(), "ettrich@kde.org");
     aboutData.addAuthor(ki18n("Cristian Tibirna"), KLocalizedString(), "tibirna@kde.org");
@@ -560,16 +448,19 @@ KDE_EXPORT int kdemain(int argc, char * argv[])
     // for several bug reports about high CPU usage (bug #239963)
     setenv("QT_NO_GLIB", "1", true);
 
-    org::kde::KSMServerInterface ksmserver("org.kde.ksmserver", "/KSMServer", QDBusConnection::sessionBus());
-    ksmserver.suspendStartup(KWIN_NAME);
+    org::kde::KSMServerInterface ksmserver(QStringLiteral("org.kde.ksmserver"), QStringLiteral("/KSMServer"), QDBusConnection::sessionBus());
+    ksmserver.suspendStartup(QStringLiteral(KWIN_NAME));
     KWin::Application a;
 
-    ksmserver.resumeStartup(KWIN_NAME);
+    ksmserver.resumeStartup(QStringLiteral(KWIN_NAME));
     KWin::SessionManager weAreIndeed;
     KWin::SessionSaveDoneHelper helper;
+#warning insertCatalog needs porting
+#if KWIN_QT5_PORTING
     KGlobal::locale()->insertCatalog("kwin_effects");
     KGlobal::locale()->insertCatalog("kwin_scripts");
     KGlobal::locale()->insertCatalog("kwin_scripting");
+#endif
 
     // Announce when KWIN_DIRECT_GL is set for above HACK
     if (qstrcmp(qgetenv("KWIN_DIRECT_GL"), "1") == 0)
@@ -579,7 +470,7 @@ KDE_EXPORT int kdemain(int argc, char * argv[])
 
     QString appname;
     if (KWin::screen_number == 0)
-        appname = "org.kde.kwin";
+        appname = QStringLiteral("org.kde.kwin");
     else
         appname.sprintf("org.kde.kwin-screen-%d", KWin::screen_number);
 

@@ -291,8 +291,8 @@ void LogoutEffect::slotWindowDeleted(EffectWindow* w)
 bool LogoutEffect::isLogoutDialog(EffectWindow* w)
 {
     // TODO there should be probably a better way (window type?)
-    if (w->windowClass() == "ksmserver ksmserver"
-            && (w->windowRole() == "logoutdialog" || w->windowRole() == "logouteffect")) {
+    if (w->windowClass() == QStringLiteral("ksmserver ksmserver")
+            && (w->windowRole() == QStringLiteral("logoutdialog") || w->windowRole() == QStringLiteral("logouteffect"))) {
         return true;
     }
     return false;
@@ -305,6 +305,8 @@ void LogoutEffect::renderVignetting()
         return;
     }
     if (!m_vignettingShader) {
+        QString shader = GLPlatform::instance()->glslVersion() >= kVersionNumber(1, 40) ?
+                                QStringLiteral("kwin/vignetting-140.frag") : QStringLiteral("kwin/vignetting.frag");
         m_vignettingShader = ShaderManager::instance()->loadFragmentShader(KWin::ShaderManager::ColorShader,
                                                                            KGlobal::dirs()->findResource("data", m_shadersDir + "vignetting.frag"));
         if (!m_vignettingShader->isValid()) {
@@ -385,6 +387,8 @@ void LogoutEffect::renderBlurTexture()
         return;
     }
     if (!m_blurShader) {
+        QString shader = GLPlatform::instance()->glslVersion() >= kVersionNumber(1, 40) ?
+                                QStringLiteral("kwin/logout-blur-140.frag") : QStringLiteral("kwin/logout-blur.frag");
         m_blurShader = ShaderManager::instance()->loadFragmentShader(KWin::ShaderManager::SimpleShader,
                                                                      KGlobal::dirs()->findResource("data", m_shadersDir + "logout-blur.frag"));
         if (!m_blurShader->isValid()) {

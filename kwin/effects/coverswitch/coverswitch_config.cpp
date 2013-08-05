@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "coverswitchconfig.h"
 
 #include <kwineffects.h>
+#include <KDE/KAboutData>
 
 #include <QVBoxLayout>
 
@@ -36,7 +37,7 @@ CoverSwitchEffectConfigForm::CoverSwitchEffectConfigForm(QWidget* parent) : QWid
 }
 
 CoverSwitchEffectConfig::CoverSwitchEffectConfig(QWidget* parent, const QVariantList& args) :
-    KCModule(EffectFactory::componentData(), parent, args)
+    KCModule(KAboutData::pluginData(QStringLiteral("coverswitch")), parent, args)
 {
     m_ui = new CoverSwitchEffectConfigForm(this);
 
@@ -50,7 +51,7 @@ CoverSwitchEffectConfig::CoverSwitchEffectConfig(QWidget* parent, const QVariant
 void CoverSwitchEffectConfig::save()
 {
     KCModule::save();
-    EffectsHandler::sendReloadMessage("coverswitch");
+    EffectsHandler::sendReloadMessage(QStringLiteral("coverswitch"));
 }
 
 } // namespace
