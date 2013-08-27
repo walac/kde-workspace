@@ -73,13 +73,13 @@ public:
     // Location
     enum Location
     {
-        Floating    = Plasma::Floating,
-        Desktop     = Plasma::Desktop,
-        FullScreen  = Plasma::FullScreen,
-        TopEdge     = Plasma::TopEdge,
-        BottomEdge  = Plasma::BottomEdge,
-        LeftEdge    = Plasma::LeftEdge,
-        RightEdge   = Plasma::RightEdge
+        Floating    = Plasma::Types::Floating,
+        Desktop     = Plasma::Types::Desktop,
+        FullScreen  = Plasma::Types::FullScreen,
+        TopEdge     = Plasma::Types::TopEdge,
+        BottomEdge  = Plasma::Types::BottomEdge,
+        LeftEdge    = Plasma::Types::LeftEdge,
+        RightEdge   = Plasma::Types::RightEdge
     };
 
     /// User's preference of visibility of task
