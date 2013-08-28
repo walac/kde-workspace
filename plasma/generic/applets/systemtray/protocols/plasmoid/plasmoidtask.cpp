@@ -98,9 +98,9 @@ QGraphicsWidget* PlasmoidTask::createWidget(Plasma::Applet *host)
     group = group.parent();
     applet->restore(group);
     applet->init();
-    applet->updateConstraints(Plasma::StartupCompletedConstraint);
+    applet->updateConstraints(Plasma::Types::StartupCompletedConstraint);
     applet->flushPendingConstraintsEvents();
-    applet->updateConstraints(Plasma::AllConstraints);
+    applet->updateConstraints(Plasma::Types::AllConstraints);
     applet->flushPendingConstraintsEvents();
 
     // make sure to record it in the configuration so that if we reload from the config,
@@ -118,7 +118,7 @@ QGraphicsWidget* PlasmoidTask::createWidget(Plasma::Applet *host)
     return static_cast<QGraphicsWidget*>(applet);
 }
 
-void PlasmoidTask::forwardConstraintsEvent(Plasma::Constraints constraints)
+void PlasmoidTask::forwardConstraintsEvent(Plasma::Types::Constraints constraints)
 {
     Plasma::Applet *applet = m_applet.data();
     if (applet) {

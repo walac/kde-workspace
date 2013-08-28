@@ -46,7 +46,7 @@ void PlasmoidProtocol::init()
 {
 }
 
-void PlasmoidProtocol::forwardConstraintsEvent(Plasma::Constraints constraints, Plasma::Applet *host)
+void PlasmoidProtocol::forwardConstraintsEvent(Plasma::Types::Constraints constraints, Plasma::Applet *host)
 {
     if (m_tasks.contains(host)) {
         QHash<QString, PlasmoidTask*> tasksForHost = m_tasks.value(host);

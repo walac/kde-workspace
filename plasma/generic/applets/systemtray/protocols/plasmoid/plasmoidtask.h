@@ -44,7 +44,7 @@ public:
     virtual bool isEmbeddable() const;
     virtual QString taskId() const;
     virtual QIcon icon() const;
-    void forwardConstraintsEvent(Plasma::Constraints constraints);
+    void forwardConstraintsEvent(Plasma::Types::Constraints constraints);
     int id() const;
     Plasma::Applet *host() const;
     virtual bool isWidget() const;
