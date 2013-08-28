@@ -25,9 +25,9 @@ set(systemtray_SRCS
 #
     protocols/plasmoid/plasmoidtaskprotocol.cpp
     protocols/plasmoid/plasmoidtask.cpp
-#
-#     protocols/dbussystemtray/dbussystemtraytask.cpp
-#     protocols/dbussystemtray/dbussystemtrayprotocol.cpp
+
+    protocols/dbussystemtray/dbussystemtraytask.cpp
+    protocols/dbussystemtray/dbussystemtrayprotocol.cpp
 #
 #     ui/applet.cpp
 #     ui/widgetitem.cpp

@@ -25,16 +25,19 @@
 #include <QtCore/QMetaEnum>
 #include <QtCore/QDir>
 #include <QtCore/QCoreApplication>
-#include <QtGui/QMenu>
+#include <QtWidgets/QMenu>
 #include <QtGui/QIcon>
+#include <QDebug>
 
 #include <KDE/KJob>
 #include <KDE/KIcon>
 #include <KDE/KIconLoader>
 #include <KDE/KStandardDirs>
-#include <KDE/Plasma/ServiceJob>
-#include <KDE/Plasma/ToolTipManager>
-#include <KDE/Plasma/Applet>
+#include <KGlobal>
+
+#include <Plasma/ServiceJob>
+#include <Plasma/Applet>
+
 
 namespace SystemTray
 {
@@ -59,7 +62,7 @@ DBusSystemTrayTask::~DBusSystemTrayTask()
 {
 }
 
-QGraphicsWidget* DBusSystemTrayTask::createWidget(Plasma::Applet */*host*/)
+QQuickItem* DBusSystemTrayTask::createWidget(Plasma::Applet */*host*/)
 {
     return 0;  // d-bus tasks don't have widgets but provide info for GUI;
 }
@@ -339,7 +342,7 @@ void DBusSystemTrayTask::syncIcons(const Plasma::DataEngine::Data &properties)
                 // icons
                 m_customIconLoader = new KIconLoader(appName, 0 /* dirs */, this);
             } else {
-                kWarning() << "Wrong IconThemePath" << path << ": too short or does not end with 'icons'";
+                qWarning() << "Wrong IconThemePath" << path << ": too short or does not end with 'icons'";
             }
         }
 
