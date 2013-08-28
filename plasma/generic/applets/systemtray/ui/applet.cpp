@@ -31,10 +31,10 @@
 #include <QtGui/QMenu>
 #include <QtGui/QGraphicsLinearLayout>
 #include <QtGui/QStandardItemModel>
-#include <QtDeclarative/QDeclarativeError>
-#include <QtDeclarative/QDeclarativeEngine>
-#include <QtDeclarative/QDeclarativeContext>
-#include <QtDeclarative/QDeclarativeComponent>
+#include <QtQml/QQmlError>
+#include <QtQml/QQmlEngine>
+#include <QtQml/QQmlContext>
+#include <QtQml/QQmlComponent>
 
 #include <KDE/KStandardDirs>
 #include <KDE/KAction>
@@ -71,7 +71,7 @@ namespace SystemTray
 namespace
 {
 
-static void _RegisterEnums(QDeclarativeContext *context, const QMetaObject &meta)
+static void _RegisterEnums(QQmlContext *context, const QMetaObject &meta)
 {
     for (int i = 0, s = meta.enumeratorCount(); i < s; ++i) {
         QMetaEnum e = meta.enumerator(i);
@@ -157,7 +157,7 @@ void Applet::init()
     if (!m_widget->engine() || !m_widget->engine()->rootContext() || !m_widget->engine()->rootContext()->isValid()
             || m_widget->mainComponent()->isError()) {
         QString reason;
-        foreach (QDeclarativeError error, m_widget->mainComponent()->errors()) {
+        foreach (QQmlError error, m_widget->mainComponent()->errors()) {
             reason += error.toString();
         }
         setFailedToLaunch(true, reason);
@@ -165,7 +165,7 @@ void Applet::init()
     }
 
     // setup context add global object "plasmoid"
-    QDeclarativeContext *root_context = m_widget->engine()->rootContext();
+    QQmlContext *root_context = m_widget->engine()->rootContext();
     root_context->setContextProperty("plasmoid", this);
 
     // add enumerations manually to global context
@@ -186,14 +186,14 @@ void Applet::_onAddedTask(Task *task)
         // If task is presented as a widget then we should check that widget
         if (!task->isEmbeddable(this)) {
             //was a widget created previously? kill it
-            QGraphicsWidget *widget = task->widget(this, false);
+            QQuickItem *widget = task->widget(this, false);
             if (widget) {
                 task->abandon(this);
             }
             return;
         }
 
-        QGraphicsWidget *widget = task->widget(this);
+        QQuickItem *widget = task->widget(this);
         if (!widget) {
             return;
         }
@@ -333,17 +333,17 @@ QString Applet::_getActionName(Task *task) const {
     return task->objectName() + QString("-") + QString::number(this->id());
 }
 
-void Applet::constraintsEvent(Plasma::Constraints constraints)
+void Applet::constraintsEvent(Plasma::Types::Constraints constraints)
 {
-    if (constraints & Plasma::FormFactorConstraint) {
+    if (constraints & Plasma::Types::FormFactorConstraint) {
         emit formFactorChanged();
     }
 
-    if (constraints & Plasma::LocationConstraint) {
+    if (constraints & Plasma::Types::LocationConstraint) {
         emit locationChanged();
     }
 
-    if (constraints & Plasma::ImmutableConstraint) {
+    if (constraints & Plasma::Types::ImmutableConstraint) {
         if (m_visibleItemsInterface) {
             bool visible = (immutability() == Plasma::UserImmutable);
             m_visibleItemsUi.visibleItemsView->setEnabled(immutability() == Plasma::Mutable);
@@ -352,7 +352,7 @@ void Applet::constraintsEvent(Plasma::Constraints constraints)
         }
     }
 
-    if (constraints & Plasma::StartupCompletedConstraint) {
+    if (constraints & Plasma::Types::StartupCompletedConstraint) {
         QTimer::singleShot(0, this, SLOT(checkDefaultApplets()));
         configChanged();
     }

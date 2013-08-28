@@ -24,7 +24,8 @@
 #ifndef APPLET_H
 #define APPLET_H
 
-#include <KDE/Plasma/Applet>
+#include <Plasma/Applet>
+#include <KConfigDialog>
 
 #include "ui_autohide.h"
 #include "ui_visibleitems.h"
@@ -64,10 +65,10 @@ public:
     // Form factor
     enum FormFactor
     {
-        Planar       = Plasma::Planar,
-        MediaCenter  = Plasma::MediaCenter,
-        Horizontal   = Plasma::Horizontal,
-        Vertical     = Plasma::Vertical
+        Planar       = Plasma::Types::Planar,
+        MediaCenter  = Plasma::Types::MediaCenter,
+        Horizontal   = Plasma::Types::Horizontal,
+        Vertical     = Plasma::Types::Vertical
     };
 
     // Location
@@ -93,7 +94,7 @@ public:
     ~Applet();
 
     void init();
-    void constraintsEvent(Plasma::Constraints constraints);
+    void constraintsEvent(Plasma::Types::Constraints constraints);
     Manager *manager() const;
     QSet<Task::Category> shownCategories() const;
     bool isFirstRun();
@@ -111,10 +112,10 @@ protected:
     void createConfigurationInterface(KConfigDialog *parent);
     void configChanged();
 
-    void mousePressEvent(QGraphicsSceneMouseEvent *event) { Q_UNUSED(event); }
-    void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) { Q_UNUSED(event); }
-    void hoverEnterEvent(QGraphicsSceneHoverEvent *event) { Q_UNUSED(event); }
-    void hoverLeaveEvent(QGraphicsSceneHoverEvent *event) { Q_UNUSED(event); }
+    void mousePressEvent(QMouseEvent *event) { Q_UNUSED(event); }
+    void mouseReleaseEvent(QMouseEvent *event) { Q_UNUSED(event); }
+    void hoverEnterEvent(QHoverEvent *event) { Q_UNUSED(event); }
+    void hoverLeaveEvent(QHoverEvent *event) { Q_UNUSED(event); }
 
 Q_SIGNALS:
     void formFactorChanged();

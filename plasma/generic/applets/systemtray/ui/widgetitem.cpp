@@ -29,7 +29,7 @@
 #include "../core/task.h"
 
 #include <QtCore/QWeakPointer>
-#include <QtGui/QGraphicsWidget>
+#include <QtQuick/QQuickItem>
 
 #include <KDE/Plasma/Containment>
 
@@ -38,8 +38,8 @@ namespace SystemTray
 {
 // class WidgetItem
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-WidgetItem::WidgetItem(QDeclarativeItem *parent)
-    : QDeclarativeItem(parent),
+WidgetItem::WidgetItem(QQuickItem *parent)
+    : QQuickItem(parent),
       m_applet(0)
 {
     setClip(false);
@@ -77,7 +77,7 @@ void WidgetItem::setApplet(QObject *a)
 void WidgetItem::unbind()
 {
     if (m_applet && m_task) {
-        QGraphicsWidget *widget = m_task.data()->widget(m_applet, false);
+        QQuickItem *widget = m_task.data()->widget(m_applet, false);
         if (widget && widget->parentItem() == this) {
             widget->hide();
             widget->setParentItem(0);
@@ -88,7 +88,7 @@ void WidgetItem::unbind()
 void WidgetItem::bind()
 {
     if (m_applet && m_task) {
-        QGraphicsWidget *widget = m_task.data()->widget(m_applet);
+        QQuickItem *widget = m_task.data()->widget(m_applet);
         if (widget) {
             widget->setParentItem(this);
             widget->setPos(0, 0);
@@ -107,7 +107,7 @@ void WidgetItem::afterWidthChanged()
         return;
     }
 
-    QGraphicsWidget *widget = m_task.data()->widget(m_applet);
+    QQuickItem *widget = m_task.data()->widget(m_applet);
     if (widget) {
         widget->setPreferredSize(width(), width());
         widget->setMinimumSize(width(), width());
@@ -122,7 +122,7 @@ void WidgetItem::afterHeightChanged()
         return;
     }
 
-    QGraphicsWidget *widget = m_task.data()->widget(m_applet);
+    QQuickItem *widget = m_task.data()->widget(m_applet);
     if (widget) {
         widget->setPreferredSize(width(), width());
         widget->setMinimumSize(width(), width());

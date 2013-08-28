@@ -27,10 +27,10 @@
 
 #include "../core/task.h"
 
-#include <QtGui/QGraphicsSceneWheelEvent>
+#include <QtGui/QWheelEventEvent>
 #include <QtGui/QGraphicsSceneContextMenuEvent>
-#include <QtGui/QGraphicsSceneMouseEvent>
-#include <QtGui/QGraphicsSceneHoverEvent>
+#include <QtGui/QMouseEvent>
+#include <QtGui/QHoverEvent>
 #include <QtGui/QGraphicsScene>
 
 #include <KDE/Plasma/Containment>
@@ -70,8 +70,8 @@ template<class T> void MouseRedirectArea::forwardEvent(T *event, bool is_context
 }
 
 
-MouseRedirectArea::MouseRedirectArea(QDeclarativeItem *parent)
-    : QDeclarativeItem(parent)
+MouseRedirectArea::MouseRedirectArea(QQuickItem *parent)
+    : QQuickItem(parent)
     , m_widget(0)
     , m_task(0)
     , m_target(0)
@@ -100,7 +100,7 @@ void MouseRedirectArea::setApplet(QObject *a)
 }
 
 
-void MouseRedirectArea::wheelEvent(QGraphicsSceneWheelEvent *event)
+void MouseRedirectArea::wheelEvent(QWheelEventEvent *event)
 {
     if (!m_isApplet && m_widget) {
         switch (event->orientation()) {
@@ -125,7 +125,7 @@ void MouseRedirectArea::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
 }
 
 
-void MouseRedirectArea::mousePressEvent(QGraphicsSceneMouseEvent *event)
+void MouseRedirectArea::mousePressEvent(QMouseEvent *event)
 {
     if (!m_isApplet && m_widget) {
         switch (event->button()) {
@@ -138,25 +138,25 @@ void MouseRedirectArea::mousePressEvent(QGraphicsSceneMouseEvent *event)
 }
 
 
-void MouseRedirectArea::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
+void MouseRedirectArea::mouseReleaseEvent(QMouseEvent *event)
 {
     forwardEvent(event);
 }
 
-void MouseRedirectArea::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
+void MouseRedirectArea::hoverEnterEvent(QHoverEvent *event)
 {
     forwardEvent(event);
     emit entered();
 }
 
 
-void MouseRedirectArea::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
+void MouseRedirectArea::hoverLeaveEvent(QHoverEvent *event)
 {
     forwardEvent(event);
     emit exited();
 }
 
-void MouseRedirectArea::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
+void MouseRedirectArea::hoverMoveEvent(QHoverEvent *event)
 {
     QPointF pos = event->pos();
     emit changedMousePos(pos.x(), pos.y());
@@ -174,7 +174,7 @@ void MouseRedirectArea::processTarget()
     m_task = 0;
     m_task = qobject_cast<Task*>(m_target);
     if (m_task) {
-        QGraphicsWidget *widget = m_task->widget(m_applet);
+        QQuickItem *widget = m_task->widget(m_applet);
         m_isApplet = (qobject_cast<Plasma::Applet*>(widget) != 0);
     } else {
         m_widget = qobject_cast<QGraphicsObject*>(m_target);
