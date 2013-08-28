@@ -84,7 +84,7 @@ bool PlasmoidTask::isWidget() const {
     return true;
 }
 
-QGraphicsWidget* PlasmoidTask::createWidget(Plasma::Applet *host)
+QQuickItem* PlasmoidTask::createWidget(Plasma::Applet *host)
 {
     if (host != m_host || !m_applet) {
         return 0;
@@ -108,14 +108,14 @@ QGraphicsWidget* PlasmoidTask::createWidget(Plasma::Applet *host)
     KConfigGroup dummy;
     applet->save(dummy);
 
-    connect(applet, SIGNAL(newStatus(Plasma::ItemStatus)), this, SLOT(newAppletStatus(Plasma::ItemStatus)));
+    connect(applet, SIGNAL(newStatus(Plasma::Types::ItemStatus)), this, SLOT(newAppletStatus(Plasma::Types::ItemStatus)));
 
     newAppletStatus(applet->status());
 
     connect(applet, SIGNAL(configNeedsSaving()), host, SIGNAL(configNeedsSaving()));
     connect(applet, SIGNAL(releaseVisualFocus()), host, SIGNAL(releaseVisualFocus()));
 
-    return static_cast<QGraphicsWidget*>(applet);
+    return static_cast<QQuickItem*>(applet);
 }
 
 void PlasmoidTask::forwardConstraintsEvent(Plasma::Types::Constraints constraints)
@@ -171,7 +171,7 @@ void PlasmoidTask::appletDestroyed(Plasma::Applet *)
     deleteLater();
 }
 
-void PlasmoidTask::newAppletStatus(Plasma::ItemStatus status)
+void PlasmoidTask::newAppletStatus(Plasma::Types::ItemStatus status)
 {
     Plasma::Applet *applet = m_applet.data();
     if (!applet) {
@@ -179,23 +179,23 @@ void PlasmoidTask::newAppletStatus(Plasma::ItemStatus status)
     }
 
     switch (status) {
-    case Plasma::PassiveStatus:
+    case Plasma::Types::PassiveStatus:
        if (Plasma::PopupApplet *popupApplet = qobject_cast<Plasma::PopupApplet *>(applet)) {
            popupApplet->hidePopup();
        }
        setStatus(Task::Passive);
        break;
 
-    case Plasma::ActiveStatus:
+    case Plasma::Types::ActiveStatus:
        setStatus(Task::Active);
        break;
 
-    case Plasma::NeedsAttentionStatus:
+    case Plasma::Types::NeedsAttentionStatus:
         setStatus(Task::NeedsAttention);
         break;
 
     default:
-    case Plasma::UnknownStatus:
+    case Plasma::Types::UnknownStatus:
         setStatus(Task::UnknownStatus);
     }
 }

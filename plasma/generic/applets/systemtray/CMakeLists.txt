@@ -23,8 +23,8 @@ set(systemtray_SRCS
 #     protocols/fdo/x11embeddelegate.cpp
 #     protocols/fdo/x11embedpainter.cpp
 #
-#     protocols/plasmoid/plasmoidtaskprotocol.cpp
-#     protocols/plasmoid/plasmoidtask.cpp
+    protocols/plasmoid/plasmoidtaskprotocol.cpp
+    protocols/plasmoid/plasmoidtask.cpp
 #
 #     protocols/dbussystemtray/dbussystemtraytask.cpp
 #     protocols/dbussystemtray/dbussystemtrayprotocol.cpp
