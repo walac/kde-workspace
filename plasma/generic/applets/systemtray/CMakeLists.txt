@@ -54,6 +54,7 @@ target_link_libraries(plasma_applet_systemtray
     Qt5::DBus
     ${Plasma_LIBRARIES}
     ${KI18n_LIBRARIES}
+    ${KConfigWidgets_LIBRARIES}
     ${KIconThemes_LIBRARIES}
     ${KNotifications_LIBRARIES}
     ${KService_LIBRARIES}
