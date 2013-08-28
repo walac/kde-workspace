@@ -27,10 +27,11 @@
 #include <KIcon>
 #include <KIconLoader>
 
-#include <plasma/applet.h>
-#include <plasma/popupapplet.h>
-#include <plasma/plasma.h>
+#include <Plasma/Applet>
+#include <Plasma/PluginLoader>
 
+#include <QQuickItem>
+#include <QDebug>
 
 namespace SystemTray
 {
@@ -93,7 +94,7 @@ QQuickItem* PlasmoidTask::createWidget(Plasma::Applet *host)
     Plasma::Applet *applet = m_applet.data();
     m_takenByParent = true;
     applet->setParent(host);
-    applet->setParentItem(host);
+    //applet->setParentItem(host);
     KConfigGroup group = applet->config();
     group = group.parent();
     applet->restore(group);
@@ -115,7 +116,8 @@ QQuickItem* PlasmoidTask::createWidget(Plasma::Applet *host)
     connect(applet, SIGNAL(configNeedsSaving()), host, SIGNAL(configNeedsSaving()));
     connect(applet, SIGNAL(releaseVisualFocus()), host, SIGNAL(releaseVisualFocus()));
 
-    return static_cast<QQuickItem*>(applet);
+    //return static_cast<QQuickItem*>(applet);
+    return new QQuickItem();
 }
 
 void PlasmoidTask::forwardConstraintsEvent(Plasma::Types::Constraints constraints)
@@ -138,7 +140,7 @@ int PlasmoidTask::id() const
 
 void PlasmoidTask::setupApplet(const QString &plugin, int id)
 {
-    Plasma::Applet *applet = Plasma::Applet::load(plugin, id);
+    Plasma::Applet *applet = Plasma::PluginLoader::self()->loadApplet(plugin, id);
     m_applet = applet;
 
     if (!m_applet) {
@@ -147,21 +149,21 @@ void PlasmoidTask::setupApplet(const QString &plugin, int id)
     }
 
     //FIXME: System Information should be system services, but battery and devicenotifier are both there. we would need multiple categories
-    if (applet->category() == "System Information" ||
-        applet->category() == "Network") {
+    if (applet->pluginInfo().category() == "System Information" ||
+        applet->pluginInfo().category() == "Network") {
         setCategory(Hardware);
-    } else if (applet->category() == "Online Services") {
+    } else if (applet->pluginInfo().category() == "Online Services") {
         setCategory(Communications);
     }
 
-    setName(applet->name());
+    setName(applet->pluginInfo().name());
 
-    m_icon = KIcon(applet->icon());
+    m_icon = QIcon::fromTheme(applet->pluginInfo().icon());
 
-    applet->setFlag(QGraphicsItem::ItemIsMovable, false);
+    //applet->setFlag(QGraphicsItem::ItemIsMovable, false);
 
     connect(applet, SIGNAL(appletDestroyed(Plasma::Applet*)), this, SLOT(appletDestroyed(Plasma::Applet*)));
-    applet->setBackgroundHints(Plasma::Applet::NoBackground);
+    //applet->setBackgroundHints(Plasma::Applet::NoBackground);
 }
 
 void PlasmoidTask::appletDestroyed(Plasma::Applet *)
@@ -180,8 +182,8 @@ void PlasmoidTask::newAppletStatus(Plasma::Types::ItemStatus status)
 
     switch (status) {
     case Plasma::Types::PassiveStatus:
-       if (Plasma::PopupApplet *popupApplet = qobject_cast<Plasma::PopupApplet *>(applet)) {
-           popupApplet->hidePopup();
+       if (Plasma::Applet *popupApplet = qobject_cast<Plasma::Applet *>(applet)) {
+           //popupApplet->setExpanded(false);
        }
        setStatus(Task::Passive);
        break;

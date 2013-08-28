@@ -75,10 +75,12 @@ void PlasmoidProtocol::loadFromConfig(Plasma::Applet *parent)
     QHashIterator<QString, PlasmoidTask*> it(existingTasks);
     while (it.hasNext()) {
         it.next();
+        /*
         Plasma::Applet *applet = qobject_cast<Plasma::Applet *>(it.value()->widget(parent, true));
         if (applet) {
             applet->destroy();
         }
+        */
     }
 }
 
@@ -119,11 +121,11 @@ void PlasmoidProtocol::removeApplet(const QString appletName, Plasma::Applet *pa
         return;
     }
 
-    Plasma::Applet *applet = qobject_cast<Plasma::Applet *>(m_tasks.value(parent).value(appletName)->widget(parent, true));
-
-    if (applet) {
-        applet->destroy();
-    }
+//     Plasma::Applet *applet = qobject_cast<Plasma::Applet *>(m_tasks.value(parent).value(appletName)->widget(parent, true));
+//
+//     if (applet) {
+//         applet->destroy();
+//     }
 }
 
 void PlasmoidProtocol::cleanupTask(Plasma::Applet *host, const QString &taskId)
