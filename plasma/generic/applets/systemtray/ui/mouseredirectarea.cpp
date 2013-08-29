@@ -27,11 +27,11 @@
 
 #include "../core/task.h"
 
-#include <QtGui/QWheelEventEvent>
-#include <QtGui/QGraphicsSceneContextMenuEvent>
+#include <QtGui/QWheelEvent>
+#include <QtGui/QContextMenuEvent>
 #include <QtGui/QMouseEvent>
 #include <QtGui/QHoverEvent>
-#include <QtGui/QGraphicsScene>
+//#include <QtGui/QGraphicsScene>
 
 #include <KDE/Plasma/Containment>
 
@@ -46,7 +46,7 @@ template<class T> void MouseRedirectArea::forwardEvent(T *event, bool is_context
 {
     if (!isEnabled() || !(m_task || m_widget) || !m_applet)
         return;
-    QGraphicsObject *target = m_widget ? m_widget : (m_task ? m_task->widget(m_applet, false) : 0);
+    QQuickItem *target = m_widget ? m_widget : (m_task ? m_task->widget(m_applet, false) : 0);
     if (!target)
         return;
 
@@ -100,7 +100,7 @@ void MouseRedirectArea::setApplet(QObject *a)
 }
 
 
-void MouseRedirectArea::wheelEvent(QWheelEventEvent *event)
+void MouseRedirectArea::wheelEvent(QWheelEvent *event)
 {
     if (!m_isApplet && m_widget) {
         switch (event->orientation()) {
@@ -119,7 +119,7 @@ void MouseRedirectArea::wheelEvent(QWheelEventEvent *event)
 }
 
 
-void MouseRedirectArea::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
+void MouseRedirectArea::contextMenuEvent(QContextMenuEvent *event)
 {
     forwardEvent(event, true);
 }
@@ -177,7 +177,7 @@ void MouseRedirectArea::processTarget()
         QQuickItem *widget = m_task->widget(m_applet);
         m_isApplet = (qobject_cast<Plasma::Applet*>(widget) != 0);
     } else {
-        m_widget = qobject_cast<QGraphicsObject*>(m_target);
+        m_widget = qobject_cast<QQuickItem*>(m_target);
     }
 }
 

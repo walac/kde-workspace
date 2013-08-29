@@ -31,7 +31,7 @@
 #include <QtCore/QWeakPointer>
 #include <QtQuick/QQuickItem>
 
-#include <KDE/Plasma/Containment>
+#include <Plasma/Containment>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 namespace SystemTray
@@ -79,7 +79,7 @@ void WidgetItem::unbind()
     if (m_applet && m_task) {
         QQuickItem *widget = m_task.data()->widget(m_applet, false);
         if (widget && widget->parentItem() == this) {
-            widget->hide();
+            widget->setVisible(false);
             widget->setParentItem(0);
         }
     }
@@ -91,11 +91,13 @@ void WidgetItem::bind()
         QQuickItem *widget = m_task.data()->widget(m_applet);
         if (widget) {
             widget->setParentItem(this);
-            widget->setPos(0, 0);
-            widget->setPreferredSize(width(), width());
-            widget->setMinimumSize(width(), width());
-            widget->setMaximumSize(width(), width());
-            widget->show();
+            widget->setX(0);
+            widget->setY(0);
+            //widget->setPreferredSize(width(), width());
+            widget->setImplicitWidth(width());
+            widget->setImplicitHeight(width());
+            //widget->setMaximumSize(width(), width());
+            widget->setVisible(true);
         }
     }
 }
@@ -109,10 +111,10 @@ void WidgetItem::afterWidthChanged()
 
     QQuickItem *widget = m_task.data()->widget(m_applet);
     if (widget) {
-        widget->setPreferredSize(width(), width());
-        widget->setMinimumSize(width(), width());
-        widget->setMaximumSize(width(), width());
-        widget->show();
+        //widget->setPreferredSize(width(), width());
+        widget->setImplicitHeight(width());
+        widget->setImplicitWidth(width());
+        widget->setVisible(true);
     }
 }
 
@@ -124,10 +126,10 @@ void WidgetItem::afterHeightChanged()
 
     QQuickItem *widget = m_task.data()->widget(m_applet);
     if (widget) {
-        widget->setPreferredSize(width(), width());
-        widget->setMinimumSize(width(), width());
-        widget->setMaximumSize(width(), width());
-        widget->show();
+        //widget->setPreferredSize(width(), width());
+        widget->setImplicitWidth(width());
+        widget->setImplicitHeight(width());
+        widget->setVisible(true);
     }
 }
 

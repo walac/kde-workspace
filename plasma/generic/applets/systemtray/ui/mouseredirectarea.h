@@ -35,8 +35,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Forward declarations
 class QQuickItem;
-class QWheelEventEvent;
-class QGraphicsSceneContextMenuEvent;
+class QWheelEvent;
+class QContextMenuEvent;
 
 
 namespace SystemTray
@@ -71,8 +71,8 @@ Q_SIGNALS:
     void exited();
 
 private: //Events
-    virtual void wheelEvent(QWheelEventEvent *event);
-    virtual void contextMenuEvent(QGraphicsSceneContextMenuEvent *event);
+    virtual void wheelEvent(QWheelEvent *event);
+    virtual void contextMenuEvent(QContextMenuEvent *event);
     virtual void mousePressEvent(QMouseEvent *event);
     virtual void mouseReleaseEvent(QMouseEvent *event);
     virtual void hoverEnterEvent(QHoverEvent *event);
@@ -85,7 +85,7 @@ private: // Methods
     void processTarget();
 
 private: //Variables
-    QGraphicsObject *m_widget;
+    QQuickItem *m_widget;
     Task *m_task;
     QObject *m_target;
     Plasma::Applet *m_applet;

@@ -28,8 +28,8 @@
 #include "../protocols/dbussystemtray/dbussystemtraytask.h"
 
 #include <QtCore/QTimer>
-#include <QtGui/QMenu>
-#include <QtGui/QGraphicsLinearLayout>
+#include <QtWidgets/QMenu>
+//#include <QtGui/QGraphicsLinearLayout>
 #include <QtGui/QStandardItemModel>
 #include <QtQml/QQmlError>
 #include <QtQml/QQmlEngine>
@@ -44,11 +44,13 @@
 #include <KCategorizedSortFilterProxyModel>
 #include <KCategoryDrawer>
 #include <KKeySequenceWidget>
+#include <KShortcut>
 
-#include <plasma/dataenginemanager.h>
+#include <Plasma/DataContainer>
+#include <Plasma/DataEngineConsumer>
 #include <Plasma/Corona>
-#include <Plasma/IconWidget>
-#include <KDE/Plasma/DeclarativeWidget>
+//#include <Plasma/IconWidget>
+//#include <KDE/Plasma/DeclarativeWidget>
 
 #include <inttypes.h>
 
@@ -101,7 +103,7 @@ Applet::Applet(QObject *parent, const QVariantList &arguments)
 
     ++s_managerUsage;
 
-    setAspectRatioMode(Plasma::IgnoreAspectRatio);
+//     setAspectRatioMode(Plasma::IgnoreAspectRatio);
     setHasConfigurationInterface(true);
 }
 
@@ -144,10 +146,17 @@ void Applet::init()
     if (!dirs.isEmpty()) {
         data_path = dirs.at(0);
     } else {
-        setFailedToLaunch(true, "Data directory for applet isn't found");
+        //setFailedToLaunch(true, "Data directory for applet isn't found");
         return;
     }
 
+
+
+    // FIXME
+    //setFailedToLaunch(true, "Architectural problems need solving. Applet is not functional.");
+    return;
+
+    /*
     // Create declarative engine, etc
     m_widget = new Plasma::DeclarativeWidget(this);
     m_widget->setInitializationDelayed(true);
@@ -172,11 +181,13 @@ void Applet::init()
     _RegisterEnums(root_context, Task::staticMetaObject);
     _RegisterEnums(root_context, SystemTray::Applet::staticMetaObject);
 
-    // add declarative widget to our applet
+        // add declarative widget to our applet
     QGraphicsLinearLayout *layout = new QGraphicsLinearLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(0);
     layout->addItem(m_widget);
+    */
+
 }
 
 
@@ -262,12 +273,12 @@ void Applet::_onStatusChangedTask()
 {
     foreach (Task *task, s_manager->tasks()) { 
         if (task->status() == Task::NeedsAttention)  { 
-            setStatus(Plasma::NeedsAttentionStatus);
+            setStatus(Plasma::Types::NeedsAttentionStatus);
             return; 
         }
     }
     
-    setStatus(Plasma::PassiveStatus);
+    setStatus(Plasma::Types::PassiveStatus);
 }
 
 void Applet::_onWidgetCreationFinished()
@@ -345,8 +356,8 @@ void Applet::constraintsEvent(Plasma::Types::Constraints constraints)
 
     if (constraints & Plasma::Types::ImmutableConstraint) {
         if (m_visibleItemsInterface) {
-            bool visible = (immutability() == Plasma::UserImmutable);
-            m_visibleItemsUi.visibleItemsView->setEnabled(immutability() == Plasma::Mutable);
+            bool visible = (immutability() == Plasma::Types::UserImmutable);
+            m_visibleItemsUi.visibleItemsView->setEnabled(immutability() == Plasma::Types::Mutable);
             m_visibleItemsUi.unlockLabel->setVisible(visible);
             m_visibleItemsUi.unlockButton->setVisible(visible);
         }
@@ -373,11 +384,12 @@ QSet<Task::Category> Applet::shownCategories() const
 
 void Applet::propogateSizeHintChange(Qt::SizeHint which)
 {
-    emit sizeHintChanged(which);
+    //emit sizeHintChanged(which);
 }
 
 void Applet::createConfigurationInterface(KConfigDialog *parent)
 {
+    /*
     if (!m_autoHideInterface) {
         m_autoHideInterface = new QWidget();
         m_visibleItemsInterface = new QWidget();
@@ -389,7 +401,7 @@ void Applet::createConfigurationInterface(KConfigDialog *parent)
 
         QAction *unlockAction = 0;
         if (containment() && containment()->corona()) {
-            unlockAction = containment()->corona()->action("lock widgets");
+            //unlockAction = containment()->corona()->action("lock widgets");
         }
 
         if (unlockAction) {
@@ -409,7 +421,7 @@ void Applet::createConfigurationInterface(KConfigDialog *parent)
                         i18n("Choose which information to show"));
         parent->addPage(m_autoHideInterface.data(), i18n("Entries"), "configure-toolbars");
 
-        bool visible = (immutability() == Plasma::UserImmutable);
+        bool visible = (immutability() == Plasma::Types::UserImmutable);
         //FIXME: always showing the scrollbar is due to a bug somewhere in QAbstractScrollArea,
         //QListView and/or KCategorizedView; without it, under certain circumstances it will
         //go into an infinite loop. too many people are running into this problem, so we are
@@ -421,7 +433,7 @@ void Applet::createConfigurationInterface(KConfigDialog *parent)
         m_visibleItemsUi.unlockLabel->setVisible(visible);
         m_visibleItemsUi.unlockButton->setVisible(visible);
 
-        m_visibleItemsUi.visibleItemsView->setEnabled(immutability() == Plasma::Mutable);
+        m_visibleItemsUi.visibleItemsView->setEnabled(immutability() == Plasma::Types::Mutable);
         m_visibleItemsUi.visibleItemsView->setCategoryDrawer(new KCategoryDrawerV3(m_visibleItemsUi.visibleItemsView));
         m_visibleItemsUi.visibleItemsView->setMouseTracking(true);
         m_visibleItemsUi.visibleItemsView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
@@ -596,7 +608,7 @@ void Applet::createConfigurationInterface(KConfigDialog *parent)
     foreach  (const KPluginInfo &info, sortedApplets) {
         QStandardItem *item = new QStandardItem();
         item->setText(info.name());
-        item->setIcon(KIcon(info.icon()));
+        item->setIcon(QIcon::fromTheme(info.icon()));
         item->setCheckable(true);
         item->setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsEnabled);
         item->setCheckState(ownApplets.contains(info.pluginName()) ? Qt::Checked : Qt::Unchecked);
@@ -606,13 +618,14 @@ void Applet::createConfigurationInterface(KConfigDialog *parent)
     }
 
     connect(visibleItemsSourceModel, SIGNAL(itemChanged(QStandardItem*)), parent, SLOT(settingsModified()));
+    */
 }
 
 //not always the corona lock action is available: netbook locks per-containment
 void Applet::unlockContainment()
 {
-    if (containment() && containment()->immutability() == Plasma::UserImmutable) {
-        containment()->setImmutability(Plasma::Mutable);
+    if (containment() && containment()->immutability() == Plasma::Types::UserImmutable) {
+        containment()->setImmutability(Plasma::Types::Mutable);
     }
 }
 
@@ -664,7 +677,7 @@ void Applet::configAccepted()
             } else {
                 Plasma::Applet *applet = qobject_cast<Plasma::Applet *>( task->widget(this) );
                 if (applet) {
-                    applet->setGlobalShortcut(KShortcut(seq));
+                    //applet->setGlobalShortcut(KShortcut(seq));
                 }
             }
         }
@@ -724,15 +737,17 @@ void Applet::checkDefaultApplets()
     }
 
     if (!applets.contains("battery")) {
-        Plasma::DataEngineManager *engines = Plasma::DataEngineManager::self();
-        Plasma::DataEngine *power = engines->loadEngine("powermanagement");
+        Plasma::DataEngineConsumer *engines = new Plasma::DataEngineConsumer;
+        Plasma::DataEngine *power = engines->dataEngine("powermanagement");
         if (power) {
-            const QStringList &batteries = power->query("Battery")["Sources"].toStringList();
+            Plasma::DataContainer *batteryData = power->containerForSource("Battery");
+            const QStringList &batteries = batteryData->data()["Sources"].toStringList();
+            //const QStringList &batteries = power->containerForSource("Battery")["Sources"].toStringList();
             if (!batteries.isEmpty()) {
                 s_manager->addApplet("battery", this);
             }
         }
-        engines->unloadEngine("powermanagement");
+        delete engines;
     }
 
     config().writeEntry("DefaultAppletsAdded", true);
@@ -784,15 +799,15 @@ void Applet::destroyShortcutAction(QAction *action) const
 
 void Applet::showMenu(QObject *menu_var, int x, int y, QObject *item_var) const
 {
-    QGraphicsItem *item = qobject_cast<QGraphicsItem *>(item_var);
+    QQuickItem *item = qobject_cast<QQuickItem *>(item_var);
     QMenu *menu = qobject_cast<QMenu *>(menu_var);
     if (menu) {
         QPoint pos(x, y);
         menu->adjustSize();
         if (item && containment() && containment()->corona()) {
-            pos = containment()->corona()->popupPosition(item, menu->size());
+            //pos = containment()->corona()->popupPosition(item, menu->size());
         } else {
-            pos = Plasma::Applet::popupPosition(menu->size());
+            //pos = Plasma::Applet::popupPosition(menu->size());
         }
         menu->popup(pos);
     }
@@ -810,14 +825,14 @@ QString Applet::getUniqueId(QObject *obj) const
     return QString::number(reinterpret_cast<uintmax_t>(obj));
 }
 
-QPoint Applet::popupPosition(QObject *item_var, QSize size, int align) const
-{
-    QGraphicsItem *item = qobject_cast<QGraphicsItem*>(item_var);
-    if ( item && containment() && containment()->corona() ) {
-        return containment()->corona()->popupPosition(item, size, (Qt::AlignmentFlag)align);
-    }
-    return Plasma::Applet::popupPosition(size, (Qt::AlignmentFlag)align);
-}
+// QPoint Applet::popupPosition(QObject *item_var, QSize size, int align) const
+// {
+//     QGraphicsItem *item = qobject_cast<QGraphicsItem*>(item_var);
+//     if ( item && containment() && containment()->corona() ) {
+//         return containment()->corona()->popupPosition(item, size, (Qt::AlignmentFlag)align);
+//     }
+//     return Plasma::Applet::popupPosition(size, (Qt::AlignmentFlag)align);
+// }
 
 
 }

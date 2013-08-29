@@ -28,10 +28,10 @@ set(systemtray_SRCS
 
     protocols/dbussystemtray/dbussystemtraytask.cpp
     protocols/dbussystemtray/dbussystemtrayprotocol.cpp
-#
-#     ui/applet.cpp
-#     ui/widgetitem.cpp
-#     ui/mouseredirectarea.cpp
+
+    ui/applet.cpp
+    ui/widgetitem.cpp
+    ui/mouseredirectarea.cpp
     )
 
 kde4_add_ui_files(systemtray_SRCS
